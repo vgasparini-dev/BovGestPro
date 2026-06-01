@@ -1,11 +1,17 @@
-import Index from "./pages/Index";
+import UserManagement from "./pages/UserManagement";
+import FirebaseSetup from "./pages/FirebaseSetup";
 import NotFound from "./pages/NotFound";
 
 export const routers = [
   {
     path: "/",
-    name: "home",
-    element: <Index />,
+    name: "users",
+    element: <UserManagement />,
+  },
+  {
+    path: "/firebase-setup",
+    name: "firebase-setup",
+    element: <FirebaseSetup />,
   },
   /* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */
   {
