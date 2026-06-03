@@ -1,110 +1,146 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    /* ── BoviGest PRO Design Tokens ─────────────────────────── */
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    /* Surfaces */
+    --background:   40 20% 97%;      /* warm off-white #F7F5F0 */
+    --foreground:   30 15% 12%;      /* charcoal #1C1814 */
+    --card:         0 0% 100%;
+    --card-foreground: 30 15% 12%;
+    --popover:      0 0% 100%;
+    --popover-foreground: 30 15% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    /* Primary — Deep Forest Green */
+    --primary:      137 55% 25%;     /* #1A5E2A */
+    --primary-foreground: 40 20% 97%;
+    --primary-light: 137 45% 93%;   /* #E8F5EC */
+    --primary-mid:  137 45% 42%;    /* lighter green */
 
-    /* BoviGest Green */
-    --primary: 142 65% 26%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 142 55% 48%;
+    /* Secondary */
+    --secondary:    137 30% 93%;
+    --secondary-foreground: 137 55% 18%;
 
-    --secondary: 142 30% 94%;
-    --secondary-foreground: 142 65% 20%;
+    /* Muted */
+    --muted:        40 10% 94%;
+    --muted-foreground: 40 8% 50%;
 
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 50%;
+    /* Accent */
+    --accent:       137 30% 90%;
+    --accent-foreground: 137 55% 22%;
 
-    --accent: 142 40% 92%;
-    --accent-foreground: 142 65% 22%;
-
-    --destructive: 0 84% 58%;
+    /* Destructive */
+    --destructive:  0 84% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
-    --ring: 142 65% 26%;
+    /* Warning */
+    --warning:      38 92% 50%;
+    --warning-bg:   48 100% 97%;
+    --warning-fg:   34 80% 32%;
+
+    /* Success */
+    --success:      137 55% 25%;
+    --success-bg:   137 45% 93%;
+
+    /* Outline & Input */
+    --border:       40 12% 85%;
+    --input:        40 12% 85%;
+    --ring:         137 55% 25%;
+
+    /* Sidebar (dark overlay) */
+    --sidebar-bg:   137 65% 9%;      /* #0A2E13 deep forest */
+    --sidebar-text: 40 20% 97%;
+    --sidebar-muted: 137 15% 55%;
+    --sidebar-active-bg: 137 30% 18%;
+    --sidebar-hover-bg:  137 20% 14%;
 
     --radius: 0.75rem;
-
-    /* Setup page background */
-    --setup-bg-from: 220 40% 10%;
-    --setup-bg-to: 220 35% 15%;
   }
 
   .dark {
-    --background: 222 30% 8%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 30% 11%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 30% 11%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 142 55% 42%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 142 55% 60%;
-
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 60%;
-
-    --accent: 217 32% 17%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 63% 40%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 32% 18%;
-    --input: 217 32% 18%;
-    --ring: 142 55% 42%;
-
-    --setup-bg-from: 222 30% 6%;
-    --setup-bg-to: 222 30% 10%;
+    --background:   137 20% 6%;
+    --foreground:   40 20% 95%;
+    --card:         137 20% 9%;
+    --card-foreground: 40 20% 95%;
+    --popover:      137 20% 9%;
+    --popover-foreground: 40 20% 95%;
+    --primary:      137 45% 45%;
+    --primary-foreground: 137 65% 6%;
+    --primary-light: 137 25% 18%;
+    --secondary:    137 20% 15%;
+    --secondary-foreground: 137 45% 75%;
+    --muted:        137 15% 14%;
+    --muted-foreground: 40 8% 55%;
+    --accent:       137 20% 15%;
+    --accent-foreground: 137 45% 80%;
+    --destructive:  0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border:       137 20% 16%;
+    --input:        137 20% 16%;
+    --ring:         137 45% 45%;
+    --sidebar-bg:   137 65% 5%;
+    --sidebar-active-bg: 137 30% 14%;
+    --sidebar-hover-bg:  137 20% 10%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
 }
 
+/* ── Custom tokens as CSS custom properties ─────────────── */
+:root {
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 56px;
+  --header-height: 60px;
+}
+
+/* ── Utilities ───────────────────────────────────────────── */
 @layer utilities {
-  .bg-setup-bg {
+  .sidebar-bg    { background-color: hsl(var(--sidebar-bg)); }
+  .sidebar-text  { color: hsl(var(--sidebar-text)); }
+  .sidebar-muted { color: hsl(var(--sidebar-muted)); }
+  .sidebar-active { background-color: hsl(var(--sidebar-active-bg)); }
+  .sidebar-hover:hover { background-color: hsl(var(--sidebar-hover-bg)); }
+
+  .text-primary-light { color: hsl(var(--primary-light)); }
+  .bg-primary-light   { background-color: hsl(var(--primary-light)); }
+
+  .card-hover {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .card-hover:hover {
+    box-shadow: 0 4px 20px hsl(var(--primary) / 0.12);
+    transform: translateY(-1px);
+  }
+
+  .setup-gradient {
     background: linear-gradient(
       135deg,
-      hsl(var(--setup-bg-from)),
-      hsl(var(--setup-bg-to)) 60%,
-      hsl(142 40% 10%)
+      hsl(137 65% 5%) 0%,
+      hsl(137 40% 9%) 50%,
+      hsl(137 30% 12%) 100%
     );
   }
 
-  .text-primary-light {
-    color: hsl(var(--primary-light));
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
+
+  .fade-in {
+    animation: fadeIn 0.2s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }
 
-html,
-body,
-#root {
-  width: 100%;
+html, body, #root {
   height: 100%;
+  width: 100%;
 }

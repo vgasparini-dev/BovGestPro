@@ -1,0 +1,196 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  HeartPulse, Leaf, Syringe, Scale, Baby,
+  Droplets, Package, Grid3X3, Settings, Bell,
+} from 'lucide-react';
+import Sidebar, { type ViewKey } from '../components/Sidebar';
+import { MobileMenuButton } from '../components/Sidebar';
+import Dashboard from '../views/Dashboard';
+import AnimaisView from '../views/AnimaisView';
+import FinanceiroView from '../views/FinanceiroView';
+import UserManagementView from '../views/UserManagementView';
+import ComingSoon from '../views/ComingSoon';
+import { demoData } from '../data/demo';
+import type { AppData, CloudStatus, Animal, Financeiro, AppUser } from '../types';
+import {
+  getSavedConfig, initFirebase, ADMIN_EMAIL_KEY, clearConfig,
+} from '../services/firebase';
+import { getUsers, saveUser, deleteUser as deleteUserService } from '../services/userService';
+import { signInAnonymously } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
+
+export default function BoviGest() {
+  const navigate = useNavigate();
+  const [currentView, setCurrentView] = useState<ViewKey>('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [data, setData] = useState<AppData>(demoData);
+  const [cloud, setCloud] = useState<CloudStatus>('connecting');
+  const [adminEmail, setAdminEmail] = useState('admin@fazenda.com');
+  const [adminName, setAdminName] = useState('Carlos Administrador');
+  const [dbInstance, setDbInstance] = useState<Firestore | null>(null);
+
+  // ── Connect Firebase if configured ────────────────────────────────────────
+  useEffect(() => {
+    const config = getSavedConfig();
+    const email = localStorage.getItem(ADMIN_EMAIL_KEY);
+    if (!config || !email) {
+      setCloud('offline');
+      return;
+    }
+    setAdminEmail(email);
+    try {
+      const { auth, db } = initFirebase(config);
+      signInAnonymously(auth)
+        .then(async () => {
+          setDbInstance(db);
+          setCloud('online');
+          const users = await getUsers(db, email);
+          if (users.length > 0) {
+            const me = users.find(u => u.email === email);
+            if (me) setAdminName(me.nome);
+            setData(prev => ({ ...prev, usuarios: users }));
+          }
+        })
+        .catch(() => setCloud('error'));
+    } catch {
+      setCloud('error');
+    }
+  }, []);
+
+  // ── User CRUD ──────────────────────────────────────────────────────────────
+  const handleSaveUser = useCallback(async (user: AppUser, isNew: boolean) => {
+    setData(prev => ({
+      ...prev,
+      usuarios: isNew
+        ? [user, ...prev.usuarios]
+        : prev.usuarios.map(u => u.id === user.id ? user : u),
+    }));
+    if (dbInstance && adminEmail) {
+      try {
+        await saveUser(dbInstance, adminEmail, user, isNew);
+      } catch (e) { console.error(e); }
+    }
+  }, [dbInstance, adminEmail]);
+
+  const handleDeleteUser = useCallback(async (id: number) => {
+    setData(prev => ({ ...prev, usuarios: prev.usuarios.filter(u => u.id !== id) }));
+    if (dbInstance && adminEmail) {
+      try { await deleteUserService(dbInstance, adminEmail, id); } catch (e) { console.error(e); }
+    }
+  }, [dbInstance, adminEmail]);
+
+  // ── Animal CRUD ────────────────────────────────────────────────────────────
+  const handleSaveAnimal = useCallback((animal: Animal, isNew: boolean) => {
+    setData(prev => ({
+      ...prev,
+      animais: isNew
+        ? [animal, ...prev.animais]
+        : prev.animais.map(a => a.id === animal.id ? animal : a),
+    }));
+  }, []);
+
+  const handleDeleteAnimal = useCallback((id: number) => {
+    setData(prev => ({ ...prev, animais: prev.animais.filter(a => a.id !== id) }));
+  }, []);
+
+  // ── Financial CRUD ─────────────────────────────────────────────────────────
+  const handleSaveFinanceiro = useCallback((f: Financeiro, isNew: boolean) => {
+    setData(prev => ({
+      ...prev,
+      financeiro: isNew
+        ? [f, ...prev.financeiro]
+        : prev.financeiro.map(x => x.id === f.id ? f : x),
+    }));
+  }, []);
+
+  const handleDeleteFinanceiro = useCallback((id: number) => {
+    setData(prev => ({ ...prev, financeiro: prev.financeiro.filter(f => f.id !== id) }));
+  }, []);
+
+  const handleLogout = () => {
+    clearConfig();
+    navigate('/firebase-setup');
+  };
+
+  // ── View renderer ──────────────────────────────────────────────────────────
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard data={data} cloud={cloud} adminName={adminName} />;
+      case 'animais':
+        return <AnimaisView animals={data.animais} onSave={handleSaveAnimal} onDelete={handleDeleteAnimal} />;
+      case 'financeiro':
+        return <FinanceiroView financeiro={data.financeiro} onSave={handleSaveFinanceiro} onDelete={handleDeleteFinanceiro} />;
+      case 'usuarios':
+        return <UserManagementView users={data.usuarios} onSave={handleSaveUser} onDelete={handleDeleteUser} adminEmail={adminEmail} />;
+      case 'reproducao': return <ComingSoon title="Reprodução" icon={HeartPulse} />;
+      case 'pasto':      return <ComingSoon title="Pasto" icon={Leaf} />;
+      case 'vacinacao':  return <ComingSoon title="Vacinação" icon={Syringe} />;
+      case 'pesagem':    return <ComingSoon title="Pesagem" icon={Scale} />;
+      case 'nascimentos':return <ComingSoon title="Nascimentos" icon={Baby} />;
+      case 'leite':      return <ComingSoon title="Leite" icon={Droplets} />;
+      case 'insumos':    return <ComingSoon title="Insumos" icon={Package} />;
+      case 'lotes':      return <ComingSoon title="Lotes" icon={Grid3X3} />;
+      case 'configuracoes': return <ComingSoon title="Configurações" icon={Settings} />;
+      default:           return <Dashboard data={data} cloud={cloud} adminName={adminName} />;
+    }
+  };
+
+  const sidebarW = sidebarCollapsed ? 56 : 240;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Sidebar
+        current={currentView}
+        onChange={setCurrentView}
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(p => !p)}
+        adminName={adminName}
+        adminEmail={adminEmail}
+        onLogout={handleLogout}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+
+      {/* Main area shifts right of sidebar on desktop */}
+      <div
+        className="main-area flex flex-col min-h-screen transition-all duration-200"
+        style={{ marginLeft: 0 }}
+      >
+        <style>{`@media (min-width: 1024px) { .main-area { margin-left: ${sidebarW}px; } }`}</style>
+        {/* Top Header */}
+        <header className="h-15 sticky top-0 z-20 bg-card border-b border-border flex items-center justify-between px-6 shrink-0" style={{ height: 'var(--header-height)' }}>
+          <div className="flex items-center gap-3">
+            <MobileMenuButton onClick={() => setMobileOpen(true)} />
+            <div>
+              <p className="font-black text-sm text-foreground leading-none">BoviGest PRO</p>
+              <p className="text-[11px] text-muted-foreground font-medium capitalize">
+                {currentView === 'usuarios' ? 'Gestão de Usuários' :
+                 currentView === 'configuracoes' ? 'Configurações' :
+                 currentView.charAt(0).toUpperCase() + currentView.slice(1)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors relative">
+              <Bell size={18} />
+              {data.insumos.filter(i => Number(i.quantidade) <= Number(i.estoqueMinimo)).length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </button>
+            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center">
+              {adminName[0]}
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 p-6">
+          {renderView()}
+        </main>
+      </div>
+    </div>
+  );
+}

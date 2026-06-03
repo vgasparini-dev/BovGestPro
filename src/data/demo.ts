@@ -1,0 +1,82 @@
+import type { AppData } from '../types';
+
+export const demoData: AppData = {
+  usuarios: [
+    { id: 1, nome: 'Carlos Administrador', email: 'admin@fazenda.com', senha: 'admin123', role: 'Admin', status: 'Ativo', criadoEm: '01/01/2024', ultimoAcesso: '03/06/2026' },
+    { id: 2, nome: 'Maria Pereira', email: 'maria@fazenda.com', senha: 'senha123', role: 'Operador', status: 'Ativo', criadoEm: '15/02/2024', ultimoAcesso: '02/06/2026' },
+    { id: 3, nome: 'Dr. João Vet', email: 'joao.vet@fazenda.com', senha: 'vet123', role: 'Veterinario', status: 'Ativo', criadoEm: '10/03/2024', ultimoAcesso: '30/05/2026' },
+    { id: 4, nome: 'Ana Souza', email: 'ana@fazenda.com', senha: 'ana123', role: 'Operador', status: 'Inativo', criadoEm: '20/04/2024', ultimoAcesso: '10/04/2026' },
+  ],
+  animais: [
+    { id: 1, brinco: 'A001', nome: 'Mimosa', raca: 'Nelore', sexo: 'F', dataNasc: '2021-03-15', peso: 420, lote: 'Lote A', status: 'Ativo' },
+    { id: 2, brinco: 'A002', raca: 'Angus', sexo: 'M', dataNasc: '2020-08-22', peso: 580, lote: 'Lote B', status: 'Ativo' },
+    { id: 3, brinco: 'A003', nome: 'Estrela', raca: 'Girolando', sexo: 'F', dataNasc: '2019-11-05', peso: 390, lote: 'Lote A', status: 'Ativo' },
+    { id: 4, brinco: 'A004', raca: 'Brahman', sexo: 'M', dataNasc: '2022-01-18', peso: 320, lote: 'Lote C', status: 'Ativo' },
+    { id: 5, brinco: 'A005', nome: 'Bonita', raca: 'Nelore', sexo: 'F', dataNasc: '2020-06-30', peso: 450, lote: 'Lote A', status: 'Ativo' },
+    { id: 6, brinco: 'A006', raca: 'Angus', sexo: 'M', dataNasc: '2021-09-12', peso: 510, lote: 'Lote B', status: 'Ativo' },
+    { id: 7, brinco: 'A007', raca: 'Girolando', sexo: 'F', dataNasc: '2022-04-25', peso: 310, lote: 'Lote C', status: 'Ativo' },
+    { id: 8, brinco: 'A008', raca: 'Brahman', sexo: 'M', dataNasc: '2019-12-08', peso: 620, lote: 'Lote B', status: 'Ativo' },
+  ],
+  pesagens: [
+    { id: 1, brinco: 'A001', pesoAtual: 420, pesoAnterior: 395, data: '2026-05-20' },
+    { id: 2, brinco: 'A002', pesoAtual: 580, pesoAnterior: 560, data: '2026-05-21' },
+    { id: 3, brinco: 'A003', pesoAtual: 390, pesoAnterior: 375, data: '2026-05-22' },
+    { id: 4, brinco: 'A005', pesoAtual: 450, pesoAnterior: 430, data: '2026-06-01' },
+  ],
+  vacinacoes: [
+    { id: 1, vacina: 'Febre Aftosa', lote: 'FA-2024-01', brincos: ['A001', 'A002', 'A003'], dataAplicacao: '2026-04-01', dataLiberacao: '2026-04-15' },
+    { id: 2, vacina: 'Brucelose', lote: 'BR-2024-02', brincos: ['A004', 'A005'], dataAplicacao: '2026-05-10', dataLiberacao: '2026-06-10', veterinario: 'Dr. João Vet' },
+    { id: 3, vacina: 'Raiva', lote: 'RB-2024-03', brincos: ['A001', 'A006', 'A007', 'A008'], dataAplicacao: '2026-05-28' },
+  ],
+  nascimentos: [
+    { id: 1, brincoBezerro: 'B001', brincoMatriz: 'A001', brincoPai: 'A002', data: '2026-03-10', peso: 32, sexo: 'F' },
+    { id: 2, brincoBezerro: 'B002', brincoMatriz: 'A003', data: '2026-04-18', peso: 28, sexo: 'M' },
+    { id: 3, brincoBezerro: 'B003', brincoMatriz: 'A005', brincoPai: 'A008', data: '2026-05-22', peso: 35, sexo: 'F' },
+  ],
+  leite: [
+    { id: 1, data: '2026-06-01', quantidade: 120, turno: 'Manhã' },
+    { id: 2, data: '2026-06-01', quantidade: 85, turno: 'Tarde' },
+    { id: 3, data: '2026-06-02', quantidade: 118, turno: 'Manhã' },
+    { id: 4, data: '2026-06-02', quantidade: 90, turno: 'Tarde' },
+    { id: 5, data: '2026-06-03', quantidade: 115, turno: 'Manhã' },
+    { id: 6, data: '2026-05-30', quantidade: 110, turno: 'Manhã' },
+    { id: 7, data: '2026-05-30', quantidade: 82, turno: 'Tarde' },
+  ],
+  financeiro: [
+    { id: 1, tipo: 'receita', categoria: 'Venda de Animais', descricao: 'Venda de 3 bois', valor: 12500, data: '2026-06-01', status: 'pago' },
+    { id: 2, tipo: 'receita', categoria: 'Venda de Leite', descricao: 'Venda mensal cooperativa', valor: 4800, data: '2026-06-02', status: 'pago' },
+    { id: 3, tipo: 'despesa', categoria: 'Alimentação', descricao: 'Ração concentrada 5t', valor: 3200, data: '2026-06-01', status: 'pago' },
+    { id: 4, tipo: 'despesa', categoria: 'Veterinário', descricao: 'Vacinação Brucelose', valor: 850, data: '2026-06-03', status: 'pago' },
+    { id: 5, tipo: 'despesa', categoria: 'Manutenção', descricao: 'Reparo cerca setor B', valor: 1200, data: '2026-05-28', status: 'pago' },
+    { id: 6, tipo: 'receita', categoria: 'Venda de Leite', descricao: 'Venda quinzena', valor: 2400, data: '2026-05-15', status: 'pago' },
+    { id: 7, tipo: 'despesa', categoria: 'Combustível', descricao: 'Diesel trator', valor: 680, data: '2026-05-20', status: 'pago' },
+    { id: 8, tipo: 'despesa', categoria: 'Medicamentos', descricao: 'Antibióticos', valor: 420, data: '2026-06-02', status: 'pendente' },
+  ],
+  insumos: [
+    { id: 1, nome: 'Ração Concentrada Bovinos', categoria: 'Alimentação', quantidade: 500, unidade: 'kg', estoqueMinimo: 1000, fornecedor: 'Nutral Rações', custo: 2.8 },
+    { id: 2, nome: 'Ivermectina 1%', categoria: 'Medicamentos', quantidade: 50, unidade: 'ml', estoqueMinimo: 100, validade: '2027-03-01', custo: 45 },
+    { id: 3, nome: 'Vacina Febre Aftosa', categoria: 'Vacinas', quantidade: 200, unidade: 'doses', estoqueMinimo: 50, validade: '2026-12-01' },
+    { id: 4, nome: 'Sal Mineral', categoria: 'Alimentação', quantidade: 250, unidade: 'kg', estoqueMinimo: 200, custo: 3.5 },
+    { id: 5, nome: 'Diesel S10', categoria: 'Combustível', quantidade: 300, unidade: 'L', estoqueMinimo: 400, fornecedor: 'Posto Central' },
+    { id: 6, nome: 'Seringa Descartável', categoria: 'Equipamentos', quantidade: 30, unidade: 'un', estoqueMinimo: 50 },
+  ],
+  lotes: [
+    { id: 1, nome: 'Lote A', descricao: 'Vacas em lactação', quantidadeAnimais: 3, pasto: 'Pasto Norte' },
+    { id: 2, nome: 'Lote B', descricao: 'Touros reprodutores', quantidadeAnimais: 3, pasto: 'Pasto Sul' },
+    { id: 3, nome: 'Lote C', descricao: 'Animais jovens', quantidadeAnimais: 2, pasto: 'Pasto Leste' },
+  ],
+  calendario: [
+    { id: 1, doenca: 'Febre Aftosa', mes: 'Maio', publico: 'Todo o rebanho', obrigatorio: true },
+    { id: 2, doenca: 'Brucelose', mes: 'Junho', publico: 'Fêmeas 3–8 meses', obrigatorio: true },
+    { id: 3, doenca: 'Raiva', mes: 'Julho', publico: 'Todo o rebanho', obrigatorio: false },
+    { id: 4, doenca: 'Carbúnculo', mes: 'Agosto', publico: 'Bovinos acima de 6 meses', obrigatorio: false },
+    { id: 5, doenca: 'Leptospirose', mes: 'Setembro', publico: 'Reprodutores', obrigatorio: false },
+    { id: 6, doenca: 'IBR/BVD', mes: 'Outubro', publico: 'Fêmeas em reprodução', obrigatorio: false },
+  ],
+  reproducao: [
+    { id: 1, brinco: 'A001', status: 'Prenhe', dataCobertura: '2026-03-01', dataPrevistoParto: '2026-12-01', pai: 'A002' },
+    { id: 2, brinco: 'A003', status: 'Em cio', observacao: 'Monitorar' },
+    { id: 3, brinco: 'A005', status: 'Vazia', observacao: 'Aguardando avaliação veterinária' },
+    { id: 4, brinco: 'A007', status: 'Gestação', dataCobertura: '2026-04-15', dataPrevistoParto: '2027-01-20' },
+  ],
+};

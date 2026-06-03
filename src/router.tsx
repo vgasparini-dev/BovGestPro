@@ -1,12 +1,12 @@
-import UserManagement from "./pages/UserManagement";
+import BoviGest from "./pages/BoviGest";
 import FirebaseSetup from "./pages/FirebaseSetup";
 import NotFound from "./pages/NotFound";
 
 export const routers = [
   {
     path: "/",
-    name: "users",
-    element: <UserManagement />,
+    name: "app",
+    element: <BoviGest />,
   },
   {
     path: "/firebase-setup",
