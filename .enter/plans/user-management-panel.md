@@ -1,67 +1,59 @@
-# Correção de bugs e aprimoramentos — BoviGest PRO
+# Aprimorar Índices Zootécnicos + continuar aprimoramentos — BoviGest PRO
 
 ## Contexto
-Ao examinar o site em execução (screenshots + leitura do código), encontrei 3 bugs concretos que afetam a experiência real do usuário, além de uma inconsistência de terminologia. O usuário pediu para "examinar e corrigir, com os aprimoramentos que achar necessário" sem restringir o escopo — o plano abaixo foca em correções e polimento do que já existe (não inclui construir as 9 telas ainda em "Em desenvolvimento", que ficam como próximo passo caso desejado).
+O app já calcula métricas isoladas em pontos diferentes (GMD só dentro de Confinamento, "Resumo do Rebanho" no Dashboard só mostra contagens simples). Não existe hoje uma visão consolidada dos **índices zootécnicos** (os indicadores que um gestor de fazenda realmente acompanha: taxa de prenhez, taxa de natalidade, GMD do rebanho, cobertura vacinal, mortalidade, desfrute etc.). O pedido é aprimorar esses índices e continuar polindo o site.
 
-## Bugs encontrados
+## O que será feito
 
-### 1. Sidebar sobrepõe o conteúdo do Dashboard (crítico)
-Em `src/pages/BoviGest.tsx`, o deslocamento do conteúdo principal (para não ficar embaixo da sidebar fixa) é feito injetando uma tag `<style>` dinâmica com media query:
-```tsx
-<div className="main-area ..." style={{ marginLeft: 0 }}>
-  <style>{`@media (min-width: 1024px) { .main-area { margin-left: ${sidebarW}px; } }`}</style>
-```
-Essa técnica não está sendo aplicada — confirmado via screenshot: a saudação "Bom dia" e o primeiro card de KPI ("Cabeças") ficam escondidos atrás da sidebar (que tem `z-40` e fundo opaco), pois o conteúdo real começa em `margin-left: 0`.
+### 1. Nova página "Índices Zootécnicos" (núcleo do pedido)
+Página dedicada, acessível pela sidebar, com os índices agrupados por área — cada um com valor calculado a partir dos dados reais (`AppData`), fórmula/explicação curta e um selo de status (Bom / Regular / Atenção) baseado em faixas de referência usuais em pecuária de corte:
 
-**Correção:** substituir pela abordagem padrão Tailwind, usando classes estáticas condicionadas ao estado `collapsed` (que batem exatamente com as larguras usadas: `56px = ml-14`, `240px = ml-60`):
-```tsx
-className={`main-area flex flex-col min-h-screen transition-all duration-200 ${sidebarCollapsed ? 'lg:ml-14' : 'lg:ml-60'}`}
-```
-Remover a tag `<style>` injetada e a lógica de `sidebarW`/`marginLeft` inline.
+- **Reprodutivo**: Taxa de Prenhez (`reproducao` Prenhe+Gestação / total), Taxa de Natalidade (nascimentos no ano / fêmeas do rebanho)
+- **Produtivo**: GMD Médio do Rebanho (via `pesagens`, usando novo campo `dataAnterior`), GMD Médio do Confinamento (reaproveitando o cálculo já existente em `ConfinamentoView`), Produtividade Leiteira (L/dia média), Peso Médio por Lote (mini-tabela)
+- **Sanitário / Geral**: Cobertura Vacinal (brincos únicos vacinados / total de animais), Taxa de Mortalidade, Taxa de Desfrute (vendidos / rebanho), Relação Macho:Fêmea (informativo, sem selo)
 
-### 2. Indicador de status Firebase preso em "Conectando..." no modo demo
-Em `src/views/Dashboard.tsx`, tanto o badge do cabeçalho quanto o card "Firebase Sincronizado" tratam apenas 3 estados visuais (`online`, `error`, e um "else" genérico com spinner). Como o estado `offline` (sem Firebase configurado / modo demo) cai no "else", o usuário vê um spinner girando **para sempre** dizendo "Conectando...", mesmo quando a intenção foi continuar sem Firebase.
+Aviso no rodapé da página: "valores de referência aproximados, ajuste conforme sua categoria animal".
 
-**Correção:** tratar os 4 estados de `CloudStatus` (`online | offline | error | connecting`) explicitamente nos dois locais do Dashboard:
-- `online` → verde, ícone `Cloud`, "Firebase Sincronizado / Firebase online"
-- `connecting` → neutro, ícone `Loader2` girando, "Conectando..." (transitório)
-- `offline` → neutro/âmbar, ícone `CloudOff` (sem animação), "Modo Demo" / "Sem Firebase configurado"
-- `error` → vermelho, ícone `CloudOff`, "Sem Sincronização" (mantém como está)
+### 2. Utilitário compartilhado `src/lib/zootecnia.ts` (evita duplicar lógica)
+Centraliza os cálculos hoje só existentes dentro de `ConfinamentoView.tsx` (`diasConfinado`, `gmd`) e adiciona as novas fórmulas (`gmdPesagem`, `calcularIndices`, `classificar`). `ConfinamentoView.tsx` passa a importar as funções daqui em vez de tê-las duplicadas.
 
-### 3. Dados demo com datas fixas ficam desatualizados
-Em `src/data/demo.ts`, as datas de `leite`, `financeiro`, `pesagens`, `vacinacoes` e `nascimentos` são strings fixas (ex.: `'2026-06-01'`). O Dashboard filtra "Financeiro do Mês" e "Leite do Mês" pelo mês/ano atual (`new Date()`), então assim que o calendário avança além de junho/2026 esses cards mostram sempre R$ 0,00 e 0L — o painel parece quebrado sem motivo aparente.
+### 3. Pequeno ajuste de modelo para GMD real do rebanho
+`Pesagem` ganha campo opcional `dataAnterior?: string`. Sem isso não dá pra calcular um GMD real (só existe `pesoAnterior`, sem a data da pesagem anterior). Dados demo em `src/data/demo.ts` recebem esse campo (intervalo de ~30 dias antes de cada pesagem).
 
-**Correção:** gerar as datas do `demoData` dinamicamente com base em `new Date()` (offsets relativos, ex.: hoje, há 2 dias, há 1 semana, mês passado), garantindo que os cards "do mês atual" sempre mostrem dados plausíveis, independente de quando o demo for aberto. Mantém os mesmos valores/nomes, só troca strings de data fixas por cálculo relativo (função helper `daysAgo(n)` / `thisMonth(day)`).
+### 4. Dashboard: teaser dos índices
+Dentro do card "Resumo do Rebanho" (Row 3), adicionar 2 linhas com os índices mais importantes (Taxa de Prenhez, GMD Médio do Rebanho) e um link "Ver índices completos →" que navega para a nova página. Isso exige um novo prop `onNavigateIndices` passado de `BoviGest.tsx` para `Dashboard.tsx`.
 
-## Aprimoramento de consistência
+### 5. Polimentos gerais adicionais
+- Reduzir levemente o tamanho da fonte dos valores dos KPI cards do Dashboard (`text-2xl` → `text-xl`) para não apertar valores longos como "R$ 13.250,00" na grade de 6 colunas.
+- Persistir a preferência de sidebar colapsada/expandida em `localStorage`, para não resetar a cada reload.
 
-### 4. Terminologia inconsistente em Gestão de Usuários
-Em `src/views/UserManagementView.tsx`, os textos usam "Utilizador" (português europeu) — "Novo Utilizador", "Editar Utilizador", "Criar Utilizador", "Remover Utilizador", cabeçalho de tabela "Utilizador" — enquanto o resto do app (sidebar, dashboard, cabeçalho da própria página "Gestão de Usuários") usa "Usuário" (português brasileiro, consistente com R$, datas dd/mm/aaaa).
-
-**Correção:** padronizar todas as ocorrências em `UserManagementView.tsx` para "Usuário/Usuários".
-
-## Arquivos a modificar
-- `src/pages/BoviGest.tsx` — corrigir margin-left da área principal (bug 1)
-- `src/views/Dashboard.tsx` — tratar os 4 estados de `CloudStatus` explicitamente (bug 2)
-- `src/data/demo.ts` — datas relativas dinâmicas via helpers (bug 3)
-- `src/views/UserManagementView.tsx` — padronizar "Usuário" (item 4)
+## Arquivos afetados
+- `src/lib/zootecnia.ts` — **novo**, funções puras de cálculo
+- `src/types.ts` — campo opcional `dataAnterior` em `Pesagem`
+- `src/data/demo.ts` — adicionar `dataAnterior` nas pesagens demo
+- `src/views/ConfinamentoView.tsx` — usar funções de `zootecnia.ts` em vez de duplicá-las
+- `src/views/IndicesZootecnicosView.tsx` — **novo**, página completa de índices
+- `src/components/Sidebar.tsx` — novo item "Índices Zootécnicos" (ícone `Gauge`), logo após Dashboard
+- `src/pages/BoviGest.tsx` — roteia a nova view, passa `onNavigateIndices` ao Dashboard, persiste `sidebarCollapsed` no `localStorage`
+- `src/views/Dashboard.tsx` — teaser de índices no card "Resumo do Rebanho" + ajuste de tamanho de fonte dos KPIs
 
 ## Implementation checklist
-- [ ] Remover a tag `<style>` injetada e o cálculo `sidebarW` em `BoviGest.tsx`; aplicar `lg:ml-14`/`lg:ml-60` condicionalmente via className
-- [ ] Confirmar visualmente (screenshot) que o card "Cabeças" e a saudação aparecem completos, sem sobreposição da sidebar, em desktop (expandida e colapsada)
-- [ ] Confirmar que no mobile (sidebar fechada) o conteúdo ocupa a largura toda sem margin indevida
-- [ ] Adicionar tratamento explícito do estado `offline` no badge do cabeçalho do Dashboard (ícone `CloudOff` estático, texto "Modo Demo")
-- [ ] Adicionar tratamento explícito do estado `offline` no card "Firebase Sincronizado" do Dashboard (mesmo padrão visual, sem spinner)
-- [ ] Criar helpers de data relativa em `src/data/demo.ts` (ex.: `daysAgo`, `monthsAgoDate`) e substituir todas as datas fixas de `leite`, `financeiro`, `pesagens` por datas relativas a `new Date()`
-- [ ] Garantir que pelo menos parte de `financeiro` e `leite` caia no mês corrente (para os cards "do Mês" nunca ficarem zerados) e parte no mês anterior (para dar histórico nas Atividades Recentes)
-- [ ] Substituir todas as ocorrências de "Utilizador"/"Utilizadores" por "Usuário"/"Usuários" em `UserManagementView.tsx` (títulos de modal, botões, diálogo de exclusão, cabeçalho de tabela)
+- [ ] Criar `src/lib/zootecnia.ts` com `diasEntre`, `diasConfinado`, `gmdConfinamento`, `gmdPesagem`, `classificar(valor, faixaBoa, faixaRegular, invertido?)`, e `calcularIndices(data: AppData)` retornando todos os valores numéricos usados pela nova página e pelo Dashboard
+- [ ] Adicionar `dataAnterior?: string` a `Pesagem` em `src/types.ts`
+- [ ] Preencher `dataAnterior` nas 4 pesagens demo em `src/data/demo.ts` (usar `daysAgo(n+30)` relativo à data de cada pesagem)
+- [ ] Atualizar `ConfinamentoView.tsx` para importar `diasConfinado`/`gmdConfinamento` de `zootecnia.ts`, removendo as funções locais duplicadas
+- [ ] Criar `IndicesZootecnicosView.tsx` com 3 seções (Reprodutivo, Produtivo, Sanitário/Geral), cards com valor + fórmula curta + selo de status colorido, e mini-tabela de peso médio por lote
+- [ ] Adicionar `'indices'` ao union `ViewKey` e um item de navegação (ícone `Gauge`) em `Sidebar.tsx`, logo abaixo de "Dashboard"
+- [ ] Registrar o case `'indices'` no `renderView()` de `BoviGest.tsx`, renderizando `IndicesZootecnicosView`
+- [ ] Adicionar prop `onNavigateIndices` em `Dashboard.tsx`, passado de `BoviGest.tsx` como `() => setCurrentView('indices')`
+- [ ] Adicionar ao card "Resumo do Rebanho" do Dashboard 2 linhas (Taxa de Prenhez, GMD Médio do Rebanho) calculadas via `calcularIndices` + botão/link "Ver índices completos"
+- [ ] Ajustar `text-2xl` → `text-xl` no valor dos `KpiCard` do Dashboard
+- [ ] Persistir `sidebarCollapsed` no `localStorage` (ler no `useState` inicial, gravar no `onToggle`) em `BoviGest.tsx`
 
 ## Verification checklist
-- [ ] `pnpm lint` sem erros/warnings novos
-- [ ] Screenshot do Dashboard em desktop (1280px): saudação e os 6 KPI cards totalmente visíveis, nenhum atrás da sidebar
-- [ ] Screenshot do Dashboard com sidebar colapsada: conteúdo se ajusta (margin menor), sem espaço em branco nem sobreposição
-- [ ] Screenshot do Dashboard em mobile (<1024px): sidebar fixa não aparece, conteúdo ocupa largura total
-- [ ] Com Firebase não configurado (estado padrão/demo): badge mostra "Modo Demo" fixo, sem spinner girando indefinidamente
-- [ ] Cards "Leite do Mês" e "Financeiro do Mês" no Dashboard mostram valores diferentes de zero com os dados demo, na data atual do sistema
-- [ ] Tela de Gestão de Usuários não contém mais a palavra "Utilizador" em nenhum texto visível
+- [ ] `pnpm lint` sem erros/avisos novos
+- [ ] Screenshot da nova página "Índices Zootécnicos": as 3 seções renderizam com valores numéricos coerentes (não `NaN`/`Infinity`) e selos coloridos corretos
+- [ ] Screenshot do Dashboard: novo teaser de índices aparece no card "Resumo do Rebanho" e o link navega corretamente para a página de índices
+- [ ] Screenshot do Confinamento: GMD e dias confinados continuam idênticos a antes da refatoração (mesma fórmula, agora importada)
+- [ ] Colapsar a sidebar, recarregar a página (`website_screenshot` após reload) e confirmar que o estado colapsado persiste
 - [ ] Console do navegador sem novos erros após as mudanças
