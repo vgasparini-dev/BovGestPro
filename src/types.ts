@@ -119,6 +119,21 @@ export type Reproducao = {
   observacao?: string;
 };
 
+export type Confinamento = {
+  id: number;
+  brinco: string;
+  curral: string;
+  dataEntrada: string;
+  pesoEntrada: number;
+  pesoAtual: number;
+  dataUltimaPesagem?: string;
+  dieta: string;
+  custoDiario: number;
+  previsaoSaida?: string;
+  status: 'Em confinamento' | 'Finalizado' | 'Vendido';
+  observacao?: string;
+};
+
 export type AppData = {
   usuarios: AppUser[];
   animais: Animal[];
@@ -131,4 +146,5 @@ export type AppData = {
   lotes: Lote[];
   calendario: CalendarioEvento[];
   reproducao: Reproducao[];
+  confinamento: Confinamento[];
 };

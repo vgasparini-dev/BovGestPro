@@ -128,4 +128,10 @@ export const demoData: AppData = {
     { id: 3, brinco: 'A005', status: 'Vazia', observacao: 'Aguardando avaliação veterinária' },
     { id: 4, brinco: 'A007', status: 'Gestação', dataCobertura: monthsAgoDate(2), dataPrevistoParto: futureDate(210) },
   ],
+  confinamento: [
+    { id: 1, brinco: 'A004', curral: 'Curral 1', dataEntrada: daysAgo(40), pesoEntrada: 280, pesoAtual: 320, dataUltimaPesagem: daysAgo(3), dieta: 'Alto Grão', custoDiario: 12.5, previsaoSaida: futureDate(50), status: 'Em confinamento' },
+    { id: 2, brinco: 'A006', curral: 'Curral 1', dataEntrada: daysAgo(35), pesoEntrada: 410, pesoAtual: 455, dataUltimaPesagem: daysAgo(3), dieta: 'Alto Grão', custoDiario: 12.5, previsaoSaida: futureDate(45), status: 'Em confinamento' },
+    { id: 3, brinco: 'A008', curral: 'Curral 2', dataEntrada: daysAgo(60), pesoEntrada: 500, pesoAtual: 590, dataUltimaPesagem: daysAgo(5), dieta: 'Silagem + Concentrado', custoDiario: 10.8, previsaoSaida: futureDate(15), status: 'Em confinamento' },
+    { id: 4, brinco: 'A002', curral: 'Curral 2', dataEntrada: daysAgo(90), pesoEntrada: 460, pesoAtual: 580, dataUltimaPesagem: daysAgo(10), dieta: 'Silagem + Concentrado', custoDiario: 10.8, status: 'Vendido', observacao: 'Vendido acima da meta de peso' },
+  ],
 };

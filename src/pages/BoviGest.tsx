@@ -10,9 +10,10 @@ import Dashboard from '../views/Dashboard';
 import AnimaisView from '../views/AnimaisView';
 import FinanceiroView from '../views/FinanceiroView';
 import UserManagementView from '../views/UserManagementView';
+import ConfinamentoView from '../views/ConfinamentoView';
 import ComingSoon from '../views/ComingSoon';
 import { demoData } from '../data/demo';
-import type { AppData, CloudStatus, Animal, Financeiro, AppUser } from '../types';
+import type { AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento } from '../types';
 import {
   getSavedConfig, initFirebase, ADMIN_EMAIL_KEY, clearConfig,
 } from '../services/firebase';
@@ -109,6 +110,20 @@ export default function BoviGest() {
     setData(prev => ({ ...prev, financeiro: prev.financeiro.filter(f => f.id !== id) }));
   }, []);
 
+  // ── Confinamento CRUD ──────────────────────────────────────────────────────
+  const handleSaveConfinamento = useCallback((c: Confinamento, isNew: boolean) => {
+    setData(prev => ({
+      ...prev,
+      confinamento: isNew
+        ? [c, ...prev.confinamento]
+        : prev.confinamento.map(x => x.id === c.id ? c : x),
+    }));
+  }, []);
+
+  const handleDeleteConfinamento = useCallback((id: number) => {
+    setData(prev => ({ ...prev, confinamento: prev.confinamento.filter(c => c.id !== id) }));
+  }, []);
+
   const handleLogout = () => {
     clearConfig();
     navigate('/firebase-setup');
@@ -125,6 +140,8 @@ export default function BoviGest() {
         return <FinanceiroView financeiro={data.financeiro} onSave={handleSaveFinanceiro} onDelete={handleDeleteFinanceiro} />;
       case 'usuarios':
         return <UserManagementView users={data.usuarios} onSave={handleSaveUser} onDelete={handleDeleteUser} adminEmail={adminEmail} />;
+      case 'confinamento':
+        return <ConfinamentoView confinamento={data.confinamento} onSave={handleSaveConfinamento} onDelete={handleDeleteConfinamento} />;
       case 'reproducao': return <ComingSoon title="Reprodução" icon={HeartPulse} />;
       case 'pasto':      return <ComingSoon title="Pasto" icon={Leaf} />;
       case 'vacinacao':  return <ComingSoon title="Vacinação" icon={Syringe} />;
