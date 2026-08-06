@@ -138,8 +138,6 @@ export default function BoviGest() {
     }
   };
 
-  const sidebarW = sidebarCollapsed ? 56 : 240;
-
   return (
     <div className="min-h-screen bg-background">
       <Sidebar
@@ -156,10 +154,8 @@ export default function BoviGest() {
 
       {/* Main area shifts right of sidebar on desktop */}
       <div
-        className="main-area flex flex-col min-h-screen transition-all duration-200"
-        style={{ marginLeft: 0 }}
+        className={`flex flex-col min-h-screen transition-all duration-200 ${sidebarCollapsed ? 'lg:ml-14' : 'lg:ml-60'}`}
       >
-        <style>{`@media (min-width: 1024px) { .main-area { margin-left: ${sidebarW}px; } }`}</style>
         {/* Top Header */}
         <header className="h-15 sticky top-0 z-20 bg-card border-b border-border flex items-center justify-between px-6 shrink-0" style={{ height: 'var(--header-height)' }}>
           <div className="flex items-center gap-3">

@@ -68,7 +68,7 @@ function UserModal({ mode, initial, onClose, onSave, adminEmail }: {
             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
               <Users size={15} className="text-primary" />
             </div>
-            <h2 className="font-black text-foreground">{mode === 'create' ? 'Novo Utilizador' : 'Editar Utilizador'}</h2>
+            <h2 className="font-black text-foreground">{mode === 'create' ? 'Novo Usuário' : 'Editar Usuário'}</h2>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors">
             <X size={16} />
@@ -128,7 +128,7 @@ function UserModal({ mode, initial, onClose, onSave, adminEmail }: {
             </button>
             <button type="submit"
               className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-colors">
-              {mode === 'create' ? 'Criar Utilizador' : 'Salvar Alterações'}
+              {mode === 'create' ? 'Criar Usuário' : 'Salvar Alterações'}
             </button>
           </div>
         </form>
@@ -146,7 +146,7 @@ function DeleteDialog({ user, onConfirm, onCancel }: {
         <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <AlertTriangle size={24} className="text-destructive" />
         </div>
-        <h2 className="font-black text-lg text-foreground mb-1">Remover Utilizador</h2>
+        <h2 className="font-black text-lg text-foreground mb-1">Remover Usuário</h2>
         <p className="text-muted-foreground text-sm mb-6">
           Remover <span className="font-black text-foreground">{user.nome}</span>?<br />Esta ação não pode ser desfeita.
         </p>
@@ -213,7 +213,7 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
         </div>
         <button onClick={() => { setEditing(null); setModalMode('create'); }}
           className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-bold px-5 py-2.5 rounded-xl shadow-sm hover:bg-primary/90 transition-colors text-sm">
-          <Plus size={16} /> Novo Utilizador
+          <Plus size={16} /> Novo Usuário
         </button>
       </div>
 
@@ -259,14 +259,14 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <Users size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="font-bold text-sm">{search ? 'Nenhum resultado.' : 'Nenhum utilizador cadastrado.'}</p>
+            <p className="font-bold text-sm">{search ? 'Nenhum resultado.' : 'Nenhum usuário cadastrado.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  {['Utilizador', 'Email', 'Cargo', 'Status', 'Criado em', 'Último Acesso', ''].map((h, i) => (
+                  {['Usuário', 'Email', 'Cargo', 'Status', 'Criado em', 'Último Acesso', ''].map((h, i) => (
                     <th key={i} className={`px-5 py-3.5 text-[11px] font-black uppercase tracking-wider text-muted-foreground whitespace-nowrap ${i === 6 ? 'text-right' : 'text-left'}`}>{h}</th>
                   ))}
                 </tr>
@@ -307,7 +307,7 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
           </div>
         )}
         <div className="px-5 py-3 border-t border-border bg-muted/20 text-xs font-bold text-muted-foreground">
-          {filtered.length} de {users.length} utilizador{users.length !== 1 ? 'es' : ''}
+          {filtered.length} de {users.length} usuário{users.length !== 1 ? 's' : ''}
         </div>
       </div>
 
