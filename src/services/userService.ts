@@ -1,24 +1,12 @@
 import { doc, getDoc, setDoc, Firestore } from 'firebase/firestore';
-
-export type UserRole = 'Admin' | 'Operador';
-export type UserStatus = 'Ativo' | 'Inativo';
-
-export type ManagedUser = {
-  id: number;
-  nome: string;
-  email: string;
-  senha: string;
-  role: UserRole;
-  status: UserStatus;
-  criadoEm?: string;
-};
+import type { AppUser } from '../types';
 
 type FarmDocument = {
-  usuarios: ManagedUser[];
+  usuarios: AppUser[];
   [key: string]: unknown;
 };
 
-export async function getUsers(db: Firestore, adminEmail: string): Promise<ManagedUser[]> {
+export async function getUsers(db: Firestore, adminEmail: string): Promise<AppUser[]> {
   const ref = doc(db, 'bovigest_users', adminEmail);
   const snap = await getDoc(ref);
   if (!snap.exists()) return [];
@@ -29,7 +17,7 @@ export async function getUsers(db: Firestore, adminEmail: string): Promise<Manag
 export async function saveUser(
   db: Firestore,
   adminEmail: string,
-  user: ManagedUser,
+  user: AppUser,
   isNew: boolean
 ): Promise<void> {
   const ref = doc(db, 'bovigest_users', adminEmail);
@@ -81,7 +69,7 @@ export async function deleteUser(
 export async function ensureAdminExists(
   db: Firestore,
   adminEmail: string
-): Promise<ManagedUser[]> {
+): Promise<AppUser[]> {
   const ref = doc(db, 'bovigest_users', adminEmail);
   const snap = await getDoc(ref);
 
@@ -90,7 +78,7 @@ export async function ensureAdminExists(
     return Array.isArray(data.usuarios) ? data.usuarios : [];
   }
 
-  const admin: ManagedUser = {
+  const admin: AppUser = {
     id: Date.now(),
     nome: adminEmail.split('@')[0],
     email: adminEmail,

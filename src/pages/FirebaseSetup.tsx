@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Beef, Cloud, AlertCircle, CheckCircle2, ChevronRight, ArrowRight, Database } from 'lucide-react';
 import { saveConfig, initFirebase, ADMIN_EMAIL_KEY, type FirebaseConfig } from '@/services/firebase';
+import { ensureAdminExists } from '@/services/userService';
 import { signInAnonymously } from 'firebase/auth';
 
 const EMPTY: FirebaseConfig = { apiKey: '', authDomain: '', projectId: '', storageBucket: '', messagingSenderId: '', appId: '' };
@@ -40,18 +41,20 @@ export default function FirebaseSetup() {
     }
 
     try {
-      const { auth } = initFirebase(finalConfig!);
+      const { auth, db } = initFirebase(finalConfig!);
       await signInAnonymously(auth);
       saveConfig(finalConfig!);
-      localStorage.setItem(ADMIN_EMAIL_KEY, adminEmail.trim().toLowerCase());
-      navigate('/');
+      const emailNorm = adminEmail.trim().toLowerCase();
+      localStorage.setItem(ADMIN_EMAIL_KEY, emailNorm);
+      await ensureAdminExists(db, emailNorm);
+      navigate('/login', { state: { justConfigured: true, email: emailNorm } });
     } catch {
       setError('Não foi possível conectar ao Firebase. Verifique as credenciais.');
     }
     setLoading(false);
   };
 
-  const handleSkip = () => navigate('/');
+  const handleSkip = () => navigate('/login');
 
   return (
     <div className="min-h-screen setup-gradient flex items-center justify-center p-4">

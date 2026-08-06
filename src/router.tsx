@@ -1,4 +1,5 @@
 import BoviGest from "./pages/BoviGest";
+import Login from "./pages/Login";
 import FirebaseSetup from "./pages/FirebaseSetup";
 import NotFound from "./pages/NotFound";
 
@@ -7,6 +8,11 @@ export const routers = [
     path: "/",
     name: "app",
     element: <BoviGest />,
+  },
+  {
+    path: "/login",
+    name: "login",
+    element: <Login />,
   },
   {
     path: "/firebase-setup",

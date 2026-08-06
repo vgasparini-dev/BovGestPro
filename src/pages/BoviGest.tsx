@@ -16,9 +16,10 @@ import ComingSoon from '../views/ComingSoon';
 import { demoData } from '../data/demo';
 import type { AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento } from '../types';
 import {
-  getSavedConfig, initFirebase, ADMIN_EMAIL_KEY, clearConfig,
+  getSavedConfig, initFirebase, ADMIN_EMAIL_KEY,
 } from '../services/firebase';
 import { getUsers, saveUser, deleteUser as deleteUserService } from '../services/userService';
+import { getSession, clearSession } from '../services/session';
 import { signInAnonymously } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 
@@ -31,9 +32,14 @@ export default function BoviGest() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [data, setData] = useState<AppData>(demoData);
   const [cloud, setCloud] = useState<CloudStatus>('connecting');
-  const [adminEmail, setAdminEmail] = useState('admin@fazenda.com');
-  const [adminName, setAdminName] = useState('Carlos Administrador');
+  const [adminEmail, setAdminEmail] = useState(() => getSession()?.email || '');
+  const [adminName, setAdminName] = useState(() => getSession()?.nome || '');
   const [dbInstance, setDbInstance] = useState<Firestore | null>(null);
+
+  // ── Guarda de sessão: sem login, volta para /login ──────────────────────────
+  useEffect(() => {
+    if (!getSession()) navigate('/login');
+  }, [navigate]);
 
   // ── Connect Firebase if configured ────────────────────────────────────────
   useEffect(() => {
@@ -43,7 +49,7 @@ export default function BoviGest() {
       setCloud('offline');
       return;
     }
-    setAdminEmail(email);
+    setAdminEmail(prev => prev || email);
     try {
       const { auth, db } = initFirebase(config);
       signInAnonymously(auth)
@@ -52,7 +58,8 @@ export default function BoviGest() {
           setCloud('online');
           const users = await getUsers(db, email);
           if (users.length > 0) {
-            const me = users.find(u => u.email === email);
+            const session = getSession();
+            const me = users.find(u => u.email === (session?.email || email));
             if (me) setAdminName(me.nome);
             setData(prev => ({ ...prev, usuarios: users }));
           }
@@ -128,8 +135,8 @@ export default function BoviGest() {
   }, []);
 
   const handleLogout = () => {
-    clearConfig();
-    navigate('/firebase-setup');
+    clearSession();
+    navigate('/login');
   };
 
   const handleToggleSidebar = () => {
