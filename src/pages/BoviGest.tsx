@@ -171,7 +171,7 @@ export default function BoviGest() {
       case 'insumos':    return <ComingSoon title="Insumos" icon={Package} />;
       case 'lotes':      return <ComingSoon title="Lotes" icon={Grid3X3} />;
       case 'configuracoes': return <ComingSoon title="Configurações" icon={Settings} />;
-      default:           return <Dashboard data={data} cloud={cloud} adminName={adminName} />;
+      default:           return <Dashboard data={data} cloud={cloud} adminName={adminName} onNavigateIndices={() => setCurrentView('indices')} />;
     }
   };
 

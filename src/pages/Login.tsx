@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Beef, LogIn, Eye, EyeOff, AlertCircle, Info, Settings } from 'lucide-react';
 import { getSavedConfig, initFirebase, ADMIN_EMAIL_KEY } from '../services/firebase';
 import { getUsers, ensureAdminExists } from '../services/userService';
-import { saveSession } from '../services/session';
+import { getSession, saveSession } from '../services/session';
 import { demoData } from '../data/demo';
 import { signInAnonymously } from 'firebase/auth';
 
@@ -19,6 +19,11 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Já autenticado? Não faz sentido ver a tela de login de novo.
+  useEffect(() => {
+    if (getSession()) navigate('/', { replace: true });
+  }, [navigate]);
 
   const hasFirebase = !!(getSavedConfig() && localStorage.getItem(ADMIN_EMAIL_KEY));
 
