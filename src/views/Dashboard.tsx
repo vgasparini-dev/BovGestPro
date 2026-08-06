@@ -3,11 +3,12 @@ import {
   Beef, DollarSign, Droplets, HeartPulse, Scale, Baby,
   AlertTriangle, CheckCircle2, ShieldAlert, CalendarDays,
   PackagePlus, Activity, Cloud, CloudOff, Loader2,
-  TrendingUp, TrendingDown, Users, Package,
+  TrendingUp, TrendingDown, Users, Package, Gauge, ArrowRight,
 } from 'lucide-react';
 import type { AppData, CloudStatus } from '../types';
+import { calcularIndices } from '../lib/zootecnia';
 
-type Props = { data: AppData; cloud: CloudStatus; adminName: string };
+type Props = { data: AppData; cloud: CloudStatus; adminName: string; onNavigateIndices: () => void };
 
 function KpiCard({ icon: Icon, label, value, sub, color }: {
   icon: typeof Beef; label: string; value: string | number; sub?: string; color: string;
@@ -17,7 +18,7 @@ function KpiCard({ icon: Icon, label, value, sub, color }: {
       <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${color}`}>
         <Icon size={20} />
       </div>
-      <p className="text-2xl font-black text-foreground">{value}</p>
+      <p className="text-lg sm:text-xl font-black text-foreground leading-tight">{value}</p>
       {sub && <p className="text-xs text-muted-foreground font-medium mt-0.5">{sub}</p>}
       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mt-1">{label}</p>
     </div>
@@ -37,7 +38,7 @@ function formatCurrency(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-export default function Dashboard({ data, cloud, adminName }: Props) {
+export default function Dashboard({ data, cloud, adminName, onNavigateIndices }: Props) {
   const hoje = useMemo(() => new Date(), []);
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
@@ -82,6 +83,8 @@ export default function Dashboard({ data, cloud, adminName }: Props) {
 
     return { totalAnimais, femeas, machos, prenhes, leiteMes, pesoMedio, receitas, despesas, saldoMes, maxBar, carencia, vacProximas, insumoCrit, totalAlertas, recentes, finMes };
   }, [data, mesAtual, anoAtual, hoje]);
+
+  const indices = useMemo(() => calcularIndices(data), [data]);
 
   const mesLabel = hoje.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
   const hora = hoje.getHours();
@@ -311,6 +314,26 @@ export default function Dashboard({ data, cloud, adminName }: Props) {
                 </div>
               ))}
             </div>
+            <div className="mt-3 pt-3 border-t border-border space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HeartPulse size={12} className="text-pink-600" />
+                  <span className="text-xs font-medium text-muted-foreground">Taxa de Prenhez</span>
+                </div>
+                <span className="text-sm font-black text-pink-600">{indices.taxaPrenhez.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp size={12} className="text-green-600" />
+                  <span className="text-xs font-medium text-muted-foreground">GMD Médio do Rebanho</span>
+                </div>
+                <span className="text-sm font-black text-green-600">{indices.gmdRebanho.toFixed(2)}kg/d</span>
+              </div>
+            </div>
+            <button onClick={onNavigateIndices}
+              className="w-full mt-4 flex items-center justify-center gap-1.5 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 transition-colors rounded-lg py-2">
+              <Gauge size={13} /> Ver índices completos <ArrowRight size={12} />
+            </button>
           </div>
         </div>
       </div>

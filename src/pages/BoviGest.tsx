@@ -11,6 +11,7 @@ import AnimaisView from '../views/AnimaisView';
 import FinanceiroView from '../views/FinanceiroView';
 import UserManagementView from '../views/UserManagementView';
 import ConfinamentoView from '../views/ConfinamentoView';
+import IndicesZootecnicosView from '../views/IndicesZootecnicosView';
 import ComingSoon from '../views/ComingSoon';
 import { demoData } from '../data/demo';
 import type { AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento } from '../types';
@@ -21,10 +22,12 @@ import { getUsers, saveUser, deleteUser as deleteUserService } from '../services
 import { signInAnonymously } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 
+const SIDEBAR_COLLAPSED_KEY = 'bovigest_sidebar_collapsed';
+
 export default function BoviGest() {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<ViewKey>('dashboard');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [data, setData] = useState<AppData>(demoData);
   const [cloud, setCloud] = useState<CloudStatus>('connecting');
@@ -129,11 +132,21 @@ export default function BoviGest() {
     navigate('/firebase-setup');
   };
 
+  const handleToggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
+      return next;
+    });
+  };
+
   // ── View renderer ──────────────────────────────────────────────────────────
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard data={data} cloud={cloud} adminName={adminName} />;
+        return <Dashboard data={data} cloud={cloud} adminName={adminName} onNavigateIndices={() => setCurrentView('indices')} />;
+      case 'indices':
+        return <IndicesZootecnicosView data={data} />;
       case 'animais':
         return <AnimaisView animals={data.animais} onSave={handleSaveAnimal} onDelete={handleDeleteAnimal} />;
       case 'financeiro':
@@ -161,7 +174,7 @@ export default function BoviGest() {
         current={currentView}
         onChange={setCurrentView}
         collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(p => !p)}
+        onToggle={handleToggleSidebar}
         adminName={adminName}
         adminEmail={adminEmail}
         onLogout={handleLogout}
@@ -182,6 +195,7 @@ export default function BoviGest() {
               <p className="text-[11px] text-muted-foreground font-medium capitalize">
                 {currentView === 'usuarios' ? 'Gestão de Usuários' :
                  currentView === 'configuracoes' ? 'Configurações' :
+                 currentView === 'indices' ? 'Índices Zootécnicos' :
                  currentView.charAt(0).toUpperCase() + currentView.slice(1)}
               </p>
             </div>

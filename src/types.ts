@@ -36,6 +36,7 @@ export type Pesagem = {
   brinco: string;
   pesoAtual: number;
   pesoAnterior?: number;
+  dataAnterior?: string;
   data: string;
   observacao?: string;
 };

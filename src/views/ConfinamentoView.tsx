@@ -4,6 +4,7 @@ import {
   TrendingUp, Scale, DollarSign, CalendarClock,
 } from 'lucide-react';
 import type { Confinamento } from '../types';
+import { diasConfinado, gmdConfinamento } from '../lib/zootecnia';
 
 type Props = { confinamento: Confinamento[]; onSave: (c: Confinamento, isNew: boolean) => void; onDelete: (id: number) => void; };
 
@@ -11,17 +12,6 @@ const DIETAS = ['Alto Grão', 'Silagem + Concentrado', 'Volumoso + Concentrado',
 
 function formatCurrency(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function diasConfinado(c: Confinamento) {
-  const inicio = new Date(c.dataEntrada).getTime();
-  const fim = c.status === 'Em confinamento' ? Date.now() : new Date(c.dataUltimaPesagem || c.dataEntrada).getTime();
-  return Math.max(1, Math.round((fim - inicio) / 86400000));
-}
-
-function gmd(c: Confinamento) {
-  const dias = diasConfinado(c);
-  return (c.pesoAtual - c.pesoEntrada) / dias;
 }
 
 function StatusBadge({ status }: { status: Confinamento['status'] }) {
@@ -131,7 +121,7 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
 
   const ativos = confinamento.filter(c => c.status === 'Em confinamento');
   const pesoMedioEntrada = ativos.length ? ativos.reduce((s, c) => s + c.pesoEntrada, 0) / ativos.length : 0;
-  const gmdMedio = ativos.length ? ativos.reduce((s, c) => s + gmd(c), 0) / ativos.length : 0;
+  const gmdMedio = ativos.length ? ativos.reduce((s, c) => s + gmdConfinamento(c), 0) / ativos.length : 0;
   const custoDiarioTotal = ativos.reduce((s, c) => s + c.custoDiario, 0);
 
   const handleSave = (form: Partial<Confinamento>) => {
@@ -213,7 +203,7 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
               <tbody className="divide-y divide-border">
                 {filtered.map(c => {
                   const dias = diasConfinado(c);
-                  const g = gmd(c);
+                  const g = gmdConfinamento(c);
                   return (
                     <tr key={c.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-5 py-3.5 font-black text-sm text-primary">{c.brinco}</td>

@@ -59,10 +59,10 @@ export const demoData: AppData = {
     { id: 8, brinco: 'A008', raca: 'Brahman', sexo: 'M', dataNasc: '2019-12-08', peso: 620, lote: 'Lote B', status: 'Ativo' },
   ],
   pesagens: [
-    { id: 1, brinco: 'A001', pesoAtual: 420, pesoAnterior: 395, data: daysAgo(18) },
-    { id: 2, brinco: 'A002', pesoAtual: 580, pesoAnterior: 560, data: daysAgo(17) },
-    { id: 3, brinco: 'A003', pesoAtual: 390, pesoAnterior: 375, data: daysAgo(16) },
-    { id: 4, brinco: 'A005', pesoAtual: 450, pesoAnterior: 430, data: daysAgo(4) },
+    { id: 1, brinco: 'A001', pesoAtual: 420, pesoAnterior: 395, data: daysAgo(18), dataAnterior: daysAgo(48) },
+    { id: 2, brinco: 'A002', pesoAtual: 580, pesoAnterior: 560, data: daysAgo(17), dataAnterior: daysAgo(47) },
+    { id: 3, brinco: 'A003', pesoAtual: 390, pesoAnterior: 375, data: daysAgo(16), dataAnterior: daysAgo(46) },
+    { id: 4, brinco: 'A005', pesoAtual: 450, pesoAnterior: 430, data: daysAgo(4), dataAnterior: daysAgo(34) },
   ],
   vacinacoes: [
     { id: 1, vacina: 'Febre Aftosa', lote: 'FA-2024-01', brincos: ['A001', 'A002', 'A003'], dataAplicacao: daysAgo(45), dataLiberacao: daysAgo(30) },

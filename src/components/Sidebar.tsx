@@ -3,11 +3,11 @@ import {
   LayoutDashboard, Beef, HeartPulse, Leaf, Syringe,
   Scale, Baby, Droplets, DollarSign, Package, Grid3X3,
   Users, Settings, ChevronLeft, ChevronRight, Menu, X, LogOut,
-  Warehouse,
+  Warehouse, Gauge,
 } from 'lucide-react';
 
 export type ViewKey =
-  | 'dashboard' | 'animais' | 'reproducao' | 'pasto'
+  | 'dashboard' | 'indices' | 'animais' | 'reproducao' | 'pasto'
   | 'vacinacao' | 'pesagem' | 'nascimentos' | 'leite'
   | 'financeiro' | 'insumos' | 'lotes' | 'confinamento' | 'usuarios' | 'configuracoes';
 
@@ -20,6 +20,7 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { key: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, section: 'PRINCIPAL' },
+  { key: 'indices',      label: 'Índices Zootécnicos', icon: Gauge },
   { key: 'animais',      label: 'Animais',          icon: Beef,            section: 'REBANHO' },
   { key: 'lotes',        label: 'Lotes',            icon: Grid3X3 },
   { key: 'confinamento', label: 'Confinamento',     icon: Warehouse },
