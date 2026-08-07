@@ -200,6 +200,99 @@ function mapProfile(r: ProfileRow): AppUser {
   };
 }
 
+function mapPesagem(r: PesagemRow): Pesagem {
+  return {
+    id: r.id,
+    brinco: r.brinco ?? '',
+    pesoAtual: Number(r.peso_atual ?? 0),
+    pesoAnterior: r.peso_anterior != null ? Number(r.peso_anterior) : undefined,
+    dataAnterior: r.data_anterior ?? undefined,
+    data: r.data ?? '',
+    observacao: r.observacao ?? undefined,
+  };
+}
+
+function mapVacinacao(r: VacinacaoRow): Vacinacao {
+  return {
+    id: r.id,
+    vacina: r.vacina ?? '',
+    lote: r.lote ?? '',
+    brincos: Array.isArray(r.brincos) ? r.brincos : [],
+    dataAplicacao: r.data_aplicacao ?? '',
+    dataLiberacao: r.data_liberacao ?? undefined,
+    veterinario: r.veterinario ?? undefined,
+    observacao: r.observacao ?? undefined,
+  };
+}
+
+function mapNascimento(r: NascimentoRow): Nascimento {
+  return {
+    id: r.id,
+    brincoBezerro: r.brinco_bezerro ?? '',
+    brincoMatriz: r.brinco_matriz ?? '',
+    brincoPai: r.brinco_pai ?? undefined,
+    data: r.data ?? '',
+    peso: r.peso != null ? Number(r.peso) : undefined,
+    sexo: r.sexo === 'F' ? 'F' : 'M',
+    observacao: r.observacao ?? undefined,
+  };
+}
+
+function mapLeite(r: LeiteRow): RegistroLeite {
+  return {
+    id: r.id,
+    data: r.data ?? '',
+    quantidade: Number(r.quantidade ?? 0),
+    turno: (r.turno as RegistroLeite['turno']) ?? 'Manhã',
+    responsavel: r.responsavel ?? undefined,
+  };
+}
+
+function mapInsumo(r: InsumoRow): Insumo {
+  return {
+    id: r.id,
+    nome: r.nome ?? '',
+    categoria: r.categoria ?? '',
+    quantidade: Number(r.quantidade ?? 0),
+    unidade: r.unidade ?? '',
+    estoqueMinimo: Number(r.estoque_minimo ?? 0),
+    fornecedor: r.fornecedor ?? undefined,
+    validade: r.validade ?? undefined,
+    custo: r.custo != null ? Number(r.custo) : undefined,
+  };
+}
+
+function mapLote(r: LoteRow): Lote {
+  return {
+    id: r.id,
+    nome: r.nome ?? '',
+    descricao: r.descricao ?? undefined,
+    pasto: r.pasto ?? undefined,
+  };
+}
+
+function mapReproducao(r: ReproducaoRow): Reproducao {
+  return {
+    id: r.id,
+    brinco: r.brinco ?? '',
+    status: (r.status as Reproducao['status']) ?? 'Vazia',
+    dataCobertura: r.data_cobertura ?? undefined,
+    dataPrevistoParto: r.data_previsto_parto ?? undefined,
+    pai: r.pai ?? undefined,
+    observacao: r.observacao ?? undefined,
+  };
+}
+
+function mapPasto(r: PastoRow): Pasto {
+  return {
+    id: r.id,
+    nome: r.nome ?? '',
+    areaHectares: r.area_hectares != null ? Number(r.area_hectares) : undefined,
+    capacidadeAnimais: r.capacidade_animais != null ? Number(r.capacidade_animais) : undefined,
+    observacao: r.observacao ?? undefined,
+  };
+}
+
 // ── Animais ─────────────────────────────────────────────────────────
 export async function fetchAnimais(): Promise<Animal[]> {
   const { data, error } = await db.from('animais').select('*').order('created_at', { ascending: false });
