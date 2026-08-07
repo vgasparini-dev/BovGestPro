@@ -397,3 +397,230 @@ export async function fetchProfile(id: string): Promise<AppUser | null> {
   if (error || !data) return null;
   return mapProfile(data as unknown as ProfileRow);
 }
+
+/** Atualiza apenas o nome do próprio perfil (tabela `profiles`). */
+export async function updateProfileNome(id: string, nome: string): Promise<void> {
+  const { error } = await db.from('profiles').update({ nome }).eq('id', id);
+  if (error) throw error;
+}
+
+// ── Pesagens ────────────────────────────────────────────────────────
+export async function fetchPesagens(): Promise<Pesagem[]> {
+  const { data, error } = await db.from('pesagens').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as PesagemRow[]) ?? []).map(mapPesagem);
+}
+
+export async function upsertPesagem(p: Pesagem): Promise<Pesagem> {
+  const payload = {
+    id: p.id || undefined,
+    brinco: p.brinco,
+    peso_atual: p.pesoAtual,
+    peso_anterior: p.pesoAnterior ?? null,
+    data_anterior: p.dataAnterior ?? null,
+    data: p.data ?? null,
+    observacao: p.observacao ?? null,
+  };
+  const { data, error } = await db.from('pesagens').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar a pesagem.');
+  return mapPesagem(data as unknown as PesagemRow);
+}
+
+export async function deletePesagem(id: string): Promise<void> {
+  const { error } = await db.from('pesagens').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Vacinações ───────────────────────────────────────────────────────
+export async function fetchVacinacoes(): Promise<Vacinacao[]> {
+  const { data, error } = await db.from('vacinacoes').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as VacinacaoRow[]) ?? []).map(mapVacinacao);
+}
+
+export async function upsertVacinacao(v: Vacinacao): Promise<Vacinacao> {
+  const payload = {
+    id: v.id || undefined,
+    vacina: v.vacina,
+    lote: v.lote,
+    brincos: v.brincos,
+    data_aplicacao: v.dataAplicacao ?? null,
+    data_liberacao: v.dataLiberacao ?? null,
+    veterinario: v.veterinario ?? null,
+    observacao: v.observacao ?? null,
+  };
+  const { data, error } = await db.from('vacinacoes').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar a vacinação.');
+  return mapVacinacao(data as unknown as VacinacaoRow);
+}
+
+export async function deleteVacinacao(id: string): Promise<void> {
+  const { error } = await db.from('vacinacoes').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Nascimentos ──────────────────────────────────────────────────────
+export async function fetchNascimentos(): Promise<Nascimento[]> {
+  const { data, error } = await db.from('nascimentos').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as NascimentoRow[]) ?? []).map(mapNascimento);
+}
+
+export async function upsertNascimento(n: Nascimento): Promise<Nascimento> {
+  const payload = {
+    id: n.id || undefined,
+    brinco_bezerro: n.brincoBezerro,
+    brinco_matriz: n.brincoMatriz,
+    brinco_pai: n.brincoPai ?? null,
+    data: n.data ?? null,
+    peso: n.peso ?? null,
+    sexo: n.sexo,
+    observacao: n.observacao ?? null,
+  };
+  const { data, error } = await db.from('nascimentos').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar o nascimento.');
+  return mapNascimento(data as unknown as NascimentoRow);
+}
+
+export async function deleteNascimento(id: string): Promise<void> {
+  const { error } = await db.from('nascimentos').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Leite ────────────────────────────────────────────────────────────
+export async function fetchLeite(): Promise<RegistroLeite[]> {
+  const { data, error } = await db.from('leite').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as LeiteRow[]) ?? []).map(mapLeite);
+}
+
+export async function upsertLeite(l: RegistroLeite): Promise<RegistroLeite> {
+  const payload = {
+    id: l.id || undefined,
+    data: l.data ?? null,
+    quantidade: l.quantidade,
+    turno: l.turno,
+    responsavel: l.responsavel ?? null,
+  };
+  const { data, error } = await db.from('leite').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar a produção de leite.');
+  return mapLeite(data as unknown as LeiteRow);
+}
+
+export async function deleteLeite(id: string): Promise<void> {
+  const { error } = await db.from('leite').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Insumos ──────────────────────────────────────────────────────────
+export async function fetchInsumos(): Promise<Insumo[]> {
+  const { data, error } = await db.from('insumos').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as InsumoRow[]) ?? []).map(mapInsumo);
+}
+
+export async function upsertInsumo(i: Insumo): Promise<Insumo> {
+  const payload = {
+    id: i.id || undefined,
+    nome: i.nome,
+    categoria: i.categoria,
+    quantidade: i.quantidade,
+    unidade: i.unidade,
+    estoque_minimo: i.estoqueMinimo,
+    fornecedor: i.fornecedor ?? null,
+    validade: i.validade ?? null,
+    custo: i.custo ?? null,
+  };
+  const { data, error } = await db.from('insumos').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar o insumo.');
+  return mapInsumo(data as unknown as InsumoRow);
+}
+
+export async function deleteInsumo(id: string): Promise<void> {
+  const { error } = await db.from('insumos').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Lotes ───────────────────────────────────────────────────────────
+export async function fetchLotes(): Promise<Lote[]> {
+  const { data, error } = await db.from('lotes').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as LoteRow[]) ?? []).map(mapLote);
+}
+
+export async function upsertLote(l: Lote): Promise<Lote> {
+  const payload = {
+    id: l.id || undefined,
+    nome: l.nome,
+    descricao: l.descricao ?? null,
+    pasto: l.pasto ?? null,
+  };
+  const { data, error } = await db.from('lotes').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar o lote.');
+  return mapLote(data as unknown as LoteRow);
+}
+
+export async function deleteLote(id: string): Promise<void> {
+  const { error } = await db.from('lotes').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Reprodução ────────────────────────────────────────────────────────
+export async function fetchReproducao(): Promise<Reproducao[]> {
+  const { data, error } = await db.from('reproducao').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as ReproducaoRow[]) ?? []).map(mapReproducao);
+}
+
+export async function upsertReproducao(r: Reproducao): Promise<Reproducao> {
+  const payload = {
+    id: r.id || undefined,
+    brinco: r.brinco,
+    status: r.status,
+    data_cobertura: r.dataCobertura ?? null,
+    data_previsto_parto: r.dataPrevistoParto ?? null,
+    pai: r.pai ?? null,
+    observacao: r.observacao ?? null,
+  };
+  const { data, error } = await db.from('reproducao').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar o registro reprodutivo.');
+  return mapReproducao(data as unknown as ReproducaoRow);
+}
+
+export async function deleteReproducao(id: string): Promise<void> {
+  const { error } = await db.from('reproducao').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Pastos ──────────────────────────────────────────────────────────
+export async function fetchPastos(): Promise<Pasto[]> {
+  const { data, error } = await db.from('pastos').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return ((data as unknown as PastoRow[]) ?? []).map(mapPasto);
+}
+
+export async function upsertPasto(p: Pasto): Promise<Pasto> {
+  const payload = {
+    id: p.id || undefined,
+    nome: p.nome,
+    area_hectares: p.areaHectares ?? null,
+    capacidade_animais: p.capacidadeAnimais ?? null,
+    observacao: p.observacao ?? null,
+  };
+  const { data, error } = await db.from('pastos').upsert(payload).select('*').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Falha ao salvar o pasto.');
+  return mapPasto(data as unknown as PastoRow);
+}
+
+export async function deletePasto(id: string): Promise<void> {
+  const { error } = await db.from('pastos').delete().eq('id', id);
+  if (error) throw error;
+}
