@@ -11,9 +11,9 @@ Atualmente não existe nenhuma função de backend relacionada a IA (`supabase/f
 3. Após a ativação, perguntar ao usuário qual funcionalidade de IA ele quer construir (chat, geração de imagem, geração de vídeo, etc.) para então carregar a skill apropriada (`enter_llm_integration`, `enter_image_generation`, `enter_video_generation`) e implementar.
 
 ## Implementation checklist
-- [ ] Chamar `enable_ai_capability` para provisionar o token de IA nos segredos do Enter Cloud
-- [ ] Confirmar que o token foi criado (ex.: `AI_API_TOKEN_xxx`) sem expor o valor ao usuário
+- [passed] Chamar `enable_ai_capability` para provisionar o token de IA nos segredos do Enter Cloud
+- [passed] Confirmar que o token foi criado (ex.: `AI_API_TOKEN_xxx`) sem expor o valor ao usuário
 
 ## Verification checklist
-- [ ] Confirmar via resposta da ferramenta que a ativação foi bem-sucedida
-- [ ] Nenhuma alteração de código/arquivo é necessária nesta etapa (build/lint não são afetados)
+- [passed] Confirmar via resposta da ferramenta que a ativação foi bem-sucedida
+- [passed] Nenhuma alteração de código/arquivo é necessária nesta etapa (build/lint não são afetados)
