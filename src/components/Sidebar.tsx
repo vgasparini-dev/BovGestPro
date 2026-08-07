@@ -16,25 +16,24 @@ type NavItem = {
   label: string;
   icon: FC<{ size?: number; className?: string }>;
   section?: string;
-  soon?: boolean;
 };
 
 const NAV: NavItem[] = [
   { key: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, section: 'PRINCIPAL' },
   { key: 'indices',      label: 'Índices Zootécnicos', icon: Gauge },
   { key: 'animais',      label: 'Animais',          icon: Beef,            section: 'REBANHO' },
-  { key: 'lotes',        label: 'Lotes',            icon: Grid3X3,         soon: true },
+  { key: 'lotes',        label: 'Lotes',            icon: Grid3X3 },
   { key: 'confinamento', label: 'Confinamento',     icon: Warehouse },
-  { key: 'reproducao',   label: 'Reprodução',       icon: HeartPulse,      section: 'SAÚDE', soon: true },
-  { key: 'vacinacao',    label: 'Vacinação',        icon: Syringe,         soon: true },
-  { key: 'pesagem',      label: 'Pesagem',          icon: Scale,           soon: true },
-  { key: 'nascimentos',  label: 'Nascimentos',      icon: Baby,            soon: true },
-  { key: 'leite',        label: 'Leite',            icon: Droplets,        section: 'PRODUÇÃO', soon: true },
-  { key: 'pasto',        label: 'Pasto',            icon: Leaf,            soon: true },
+  { key: 'reproducao',   label: 'Reprodução',       icon: HeartPulse,      section: 'SAÚDE' },
+  { key: 'vacinacao',    label: 'Vacinação',        icon: Syringe },
+  { key: 'pesagem',      label: 'Pesagem',          icon: Scale },
+  { key: 'nascimentos',  label: 'Nascimentos',      icon: Baby },
+  { key: 'leite',        label: 'Leite',            icon: Droplets,        section: 'PRODUÇÃO' },
+  { key: 'pasto',        label: 'Pasto',            icon: Leaf },
   { key: 'financeiro',   label: 'Financeiro',       icon: DollarSign,      section: 'GESTÃO' },
-  { key: 'insumos',      label: 'Insumos',          icon: Package,         soon: true },
+  { key: 'insumos',      label: 'Insumos',          icon: Package },
   { key: 'usuarios',     label: 'Usuários',         icon: Users },
-  { key: 'configuracoes', label: 'Configurações',   icon: Settings,        soon: true },
+  { key: 'configuracoes', label: 'Configurações',   icon: Settings },
 ];
 
 type Props = {
@@ -103,10 +102,7 @@ export default function Sidebar({
                 {!collapsed && (
                   <span className="text-sm truncate flex-1">{item.label}</span>
                 )}
-                {item.soon && !collapsed && (
-                  <span className="ml-auto text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white/10 text-white/40 shrink-0">Em breve</span>
-                )}
-                {isActive && !collapsed && !item.soon && (
+                {isActive && !collapsed && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full bg-success shrink-0" />
                 )}
               </button>

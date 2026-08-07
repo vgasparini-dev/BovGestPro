@@ -1,8 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  HeartPulse, Leaf, Syringe, Scale, Baby,
-  Droplets, Package, Grid3X3, Settings, Bell,
-} from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import Sidebar, { type ViewKey } from '../components/Sidebar';
 import { MobileMenuButton } from '../components/Sidebar';
@@ -12,9 +9,20 @@ import FinanceiroView from '../views/FinanceiroView';
 import UserManagementView from '../views/UserManagementView';
 import ConfinamentoView from '../views/ConfinamentoView';
 import IndicesZootecnicosView from '../views/IndicesZootecnicosView';
-import ComingSoon from '../views/ComingSoon';
+import PesagemView from '../views/PesagemView';
+import ReproducaoView from '../views/ReproducaoView';
+import VacinacaoView from '../views/VacinacaoView';
+import NascimentosView from '../views/NascimentosView';
+import LeiteView from '../views/LeiteView';
+import InsumosView from '../views/InsumosView';
+import LotesView from '../views/LotesView';
+import PastoView from '../views/PastoView';
+import ConfiguracoesView from '../views/ConfiguracoesView';
 import { demoData } from '../data/demo';
-import type { AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento } from '../types';
+import type {
+  AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento,
+  Pesagem, Vacinacao, Nascimento, RegistroLeite, Insumo, Lote, Reproducao, Pasto,
+} from '../types';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -22,12 +30,21 @@ import {
   fetchFinanceiro, upsertFinanceiro, deleteFinanceiro,
   fetchConfinamento, upsertConfinamento, deleteConfinamento,
   fetchProfiles,
+  fetchPesagens, upsertPesagem, deletePesagem,
+  fetchVacinacoes, upsertVacinacao, deleteVacinacao,
+  fetchNascimentos, upsertNascimento, deleteNascimento,
+  fetchLeite, upsertLeite, deleteLeite,
+  fetchInsumos, upsertInsumo, deleteInsumo,
+  fetchLotes, upsertLote, deleteLote,
+  fetchReproducao, upsertReproducao, deleteReproducao,
+  fetchPastos, upsertPasto, deletePasto,
+  updateProfileNome,
 } from '../services/dataService';
 
 const SIDEBAR_COLLAPSED_KEY = 'bovigest_sidebar_collapsed';
 
 export default function BoviGest() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, refreshProfile } = useAuth();
   const [currentView, setCurrentView] = useState<ViewKey>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,14 +58,31 @@ export default function BoviGest() {
 
     const loadAll = async () => {
       try {
-        const [animais, financeiro, confinamento, usuarios] = await Promise.all([
+        const [
+          animais, financeiro, confinamento, usuarios,
+          pesagens, vacinacoes, nascimentos, leite,
+          insumos, lotes, reproducao, pastos,
+        ] = await Promise.all([
           fetchAnimais(),
           fetchFinanceiro(),
           fetchConfinamento(),
           fetchProfiles(),
+          fetchPesagens(),
+          fetchVacinacoes(),
+          fetchNascimentos(),
+          fetchLeite(),
+          fetchInsumos(),
+          fetchLotes(),
+          fetchReproducao(),
+          fetchPastos(),
         ]);
         if (!active) return;
-        setData((prev) => ({ ...prev, animais, financeiro, confinamento, usuarios }));
+        setData((prev) => ({
+          ...prev,
+          animais, financeiro, confinamento, usuarios,
+          pesagens, vacinacoes, nascimentos, leite,
+          insumos, lotes, reproducao, pastos,
+        }));
         setCloud('online');
       } catch (e) {
         console.error(e);
@@ -56,17 +90,23 @@ export default function BoviGest() {
       }
     };
 
-    const reloadTable = async (table: 'animais' | 'financeiro' | 'confinamento') => {
+    const reloadTable = async (table: string) => {
       try {
-        if (table === 'animais') {
-          const r = await fetchAnimais();
-          if (active) setData((p) => ({ ...p, animais: r }));
-        } else if (table === 'financeiro') {
-          const r = await fetchFinanceiro();
-          if (active) setData((p) => ({ ...p, financeiro: r }));
-        } else {
-          const r = await fetchConfinamento();
-          if (active) setData((p) => ({ ...p, confinamento: r }));
+        const apply = <K extends keyof AppData>(key: K, rows: AppData[K]) => {
+          if (active) setData((p) => ({ ...p, [key]: rows }));
+        };
+        switch (table) {
+          case 'animais':      apply('animais', await fetchAnimais()); break;
+          case 'financeiro':   apply('financeiro', await fetchFinanceiro()); break;
+          case 'confinamento': apply('confinamento', await fetchConfinamento()); break;
+          case 'pesagens':     apply('pesagens', await fetchPesagens()); break;
+          case 'vacinacoes':   apply('vacinacoes', await fetchVacinacoes()); break;
+          case 'nascimentos':  apply('nascimentos', await fetchNascimentos()); break;
+          case 'leite':        apply('leite', await fetchLeite()); break;
+          case 'insumos':      apply('insumos', await fetchInsumos()); break;
+          case 'lotes':        apply('lotes', await fetchLotes()); break;
+          case 'reproducao':   apply('reproducao', await fetchReproducao()); break;
+          case 'pastos':       apply('pastos', await fetchPastos()); break;
         }
       } catch (e) {
         console.error(e);
@@ -75,12 +115,15 @@ export default function BoviGest() {
 
     loadAll();
 
-    const channel = supabase
-      .channel('bovigest-business')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'animais' }, () => reloadTable('animais'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'financeiro' }, () => reloadTable('financeiro'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'confinamento' }, () => reloadTable('confinamento'))
-      .subscribe();
+    const realtimeTables = [
+      'animais', 'financeiro', 'confinamento', 'pesagens', 'vacinacoes',
+      'nascimentos', 'leite', 'insumos', 'lotes', 'reproducao', 'pastos',
+    ] as const;
+    let channel = supabase.channel('bovigest-business');
+    for (const t of realtimeTables) {
+      channel = channel.on('postgres_changes', { event: '*', schema: 'public', table: t }, () => reloadTable(t));
+    }
+    channel.subscribe();
 
     return () => {
       active = false;
@@ -221,6 +264,61 @@ export default function BoviGest() {
     }
   }, []);
 
+  // ── Generic CRUD factory (optimistic + rollback via refetch) ─────────
+  const makeCrud = <K extends keyof AppData, T extends { id: string }>(
+    key: K, upsert: (item: T) => Promise<unknown>, remove: (id: string) => Promise<void>, refetch: () => Promise<T[]>, label: string,
+  ) => ({
+    save: async (item: T, isNew: boolean) => {
+      setData((prev) => ({
+        ...prev,
+        [key]: isNew
+          ? [item, ...(prev[key] as unknown as T[])]
+          : (prev[key] as unknown as T[]).map((x) => (x.id === item.id ? item : x)),
+      }));
+      try {
+        await upsert(item);
+      } catch (e) {
+        console.error(e);
+        toast.error(`Erro ao salvar ${label}.`);
+        const rows = await refetch();
+        setData((prev) => ({ ...prev, [key]: rows }));
+      }
+    },
+    remove: async (id: string) => {
+      setData((prev) => ({ ...prev, [key]: (prev[key] as unknown as T[]).filter((x) => x.id !== id) }));
+      try {
+        await remove(id);
+      } catch (e) {
+        console.error(e);
+        toast.error(`Erro ao remover ${label}.`);
+        const rows = await refetch();
+        setData((prev) => ({ ...prev, [key]: rows }));
+      }
+    },
+  });
+
+  const pesagemCrud = useCallback(makeCrud<'pesagens', Pesagem>('pesagens', upsertPesagem, deletePesagem, fetchPesagens, 'a pesagem'), []);
+  const vacinacaoCrud = useCallback(makeCrud<'vacinacoes', Vacinacao>('vacinacoes', upsertVacinacao, deleteVacinacao, fetchVacinacoes, 'a vacinação'), []);
+  const nascimentoCrud = useCallback(makeCrud<'nascimentos', Nascimento>('nascimentos', upsertNascimento, deleteNascimento, fetchNascimentos, 'o nascimento'), []);
+  const leiteCrud = useCallback(makeCrud<'leite', RegistroLeite>('leite', upsertLeite, deleteLeite, fetchLeite, 'a produção de leite'), []);
+  const insumoCrud = useCallback(makeCrud<'insumos', Insumo>('insumos', upsertInsumo, deleteInsumo, fetchInsumos, 'o insumo'), []);
+  const loteCrud = useCallback(makeCrud<'lotes', Lote>('lotes', upsertLote, deleteLote, fetchLotes, 'o lote'), []);
+  const reproducaoCrud = useCallback(makeCrud<'reproducao', Reproducao>('reproducao', upsertReproducao, deleteReproducao, fetchReproducao, 'o registro reprodutivo'), []);
+  const pastoCrud = useCallback(makeCrud<'pastos', Pasto>('pastos', upsertPasto, deletePasto, fetchPastos, 'o pasto'), []);
+
+  // ── Perfil: salvar próprio nome ───────────────────────────────────────
+  const handleSaveNome = useCallback(async (nome: string) => {
+    if (!profile?.id) return;
+    try {
+      await updateProfileNome(profile.id, nome);
+      await refreshProfile();
+      toast.success('Nome atualizado.');
+    } catch (e) {
+      console.error(e);
+      toast.error('Não foi possível atualizar o nome.');
+    }
+  }, [profile?.id, refreshProfile]);
+
   const handleLogout = async () => {
     await signOut();
     // ProtectedRoute redirects to /login once the session clears.
@@ -252,15 +350,24 @@ export default function BoviGest() {
         return <UserManagementView users={data.usuarios} onSave={handleSaveUser} onDelete={handleDeleteUser} adminEmail={adminEmail} />;
       case 'confinamento':
         return <ConfinamentoView confinamento={data.confinamento} onSave={handleSaveConfinamento} onDelete={handleDeleteConfinamento} />;
-      case 'reproducao': return <ComingSoon title="Reprodução" icon={HeartPulse} />;
-      case 'pasto':      return <ComingSoon title="Pasto" icon={Leaf} />;
-      case 'vacinacao':  return <ComingSoon title="Vacinação" icon={Syringe} />;
-      case 'pesagem':    return <ComingSoon title="Pesagem" icon={Scale} />;
-      case 'nascimentos':return <ComingSoon title="Nascimentos" icon={Baby} />;
-      case 'leite':      return <ComingSoon title="Leite" icon={Droplets} />;
-      case 'insumos':    return <ComingSoon title="Insumos" icon={Package} />;
-      case 'lotes':      return <ComingSoon title="Lotes" icon={Grid3X3} />;
-      case 'configuracoes': return <ComingSoon title="Configurações" icon={Settings} />;
+      case 'reproducao':
+        return <ReproducaoView reproducao={data.reproducao} onSave={reproducaoCrud.save} onDelete={reproducaoCrud.remove} />;
+      case 'pasto':
+        return <PastoView pastos={data.pastos} onSave={pastoCrud.save} onDelete={pastoCrud.remove} />;
+      case 'vacinacao':
+        return <VacinacaoView vacinacoes={data.vacinacoes} onSave={vacinacaoCrud.save} onDelete={vacinacaoCrud.remove} />;
+      case 'pesagem':
+        return <PesagemView pesagens={data.pesagens} onSave={pesagemCrud.save} onDelete={pesagemCrud.remove} />;
+      case 'nascimentos':
+        return <NascimentosView nascimentos={data.nascimentos} onSave={nascimentoCrud.save} onDelete={nascimentoCrud.remove} />;
+      case 'leite':
+        return <LeiteView leite={data.leite} onSave={leiteCrud.save} onDelete={leiteCrud.remove} />;
+      case 'insumos':
+        return <InsumosView insumos={data.insumos} onSave={insumoCrud.save} onDelete={insumoCrud.remove} />;
+      case 'lotes':
+        return <LotesView lotes={data.lotes} animais={data.animais} onSave={loteCrud.save} onDelete={loteCrud.remove} />;
+      case 'configuracoes':
+        return <ConfiguracoesView profile={profile} cloud={cloud} onSaveNome={handleSaveNome} onLogout={handleLogout} />;
       default:           return <Dashboard data={data} cloud={cloud} adminName={adminName} onNavigateIndices={() => setCurrentView('indices')} />;
     }
   };
