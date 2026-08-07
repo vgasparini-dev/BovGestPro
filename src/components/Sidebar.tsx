@@ -16,24 +16,25 @@ type NavItem = {
   label: string;
   icon: FC<{ size?: number; className?: string }>;
   section?: string;
+  soon?: boolean;
 };
 
 const NAV: NavItem[] = [
   { key: 'dashboard',    label: 'Dashboard',       icon: LayoutDashboard, section: 'PRINCIPAL' },
   { key: 'indices',      label: 'Índices Zootécnicos', icon: Gauge },
   { key: 'animais',      label: 'Animais',          icon: Beef,            section: 'REBANHO' },
-  { key: 'lotes',        label: 'Lotes',            icon: Grid3X3 },
+  { key: 'lotes',        label: 'Lotes',            icon: Grid3X3,         soon: true },
   { key: 'confinamento', label: 'Confinamento',     icon: Warehouse },
-  { key: 'reproducao',   label: 'Reprodução',       icon: HeartPulse,      section: 'SAÚDE' },
-  { key: 'vacinacao',    label: 'Vacinação',        icon: Syringe },
-  { key: 'pesagem',      label: 'Pesagem',          icon: Scale },
-  { key: 'nascimentos',  label: 'Nascimentos',      icon: Baby },
-  { key: 'leite',        label: 'Leite',            icon: Droplets,        section: 'PRODUÇÃO' },
-  { key: 'pasto',        label: 'Pasto',            icon: Leaf },
+  { key: 'reproducao',   label: 'Reprodução',       icon: HeartPulse,      section: 'SAÚDE', soon: true },
+  { key: 'vacinacao',    label: 'Vacinação',        icon: Syringe,         soon: true },
+  { key: 'pesagem',      label: 'Pesagem',          icon: Scale,           soon: true },
+  { key: 'nascimentos',  label: 'Nascimentos',      icon: Baby,            soon: true },
+  { key: 'leite',        label: 'Leite',            icon: Droplets,        section: 'PRODUÇÃO', soon: true },
+  { key: 'pasto',        label: 'Pasto',            icon: Leaf,            soon: true },
   { key: 'financeiro',   label: 'Financeiro',       icon: DollarSign,      section: 'GESTÃO' },
-  { key: 'insumos',      label: 'Insumos',          icon: Package },
+  { key: 'insumos',      label: 'Insumos',          icon: Package,         soon: true },
   { key: 'usuarios',     label: 'Usuários',         icon: Users },
-  { key: 'configuracoes', label: 'Configurações',   icon: Settings },
+  { key: 'configuracoes', label: 'Configurações',   icon: Settings,        soon: true },
 ];
 
 type Props = {
@@ -62,7 +63,7 @@ export default function Sidebar({
         {!collapsed && (
           <div className="flex-1 min-w-0">
             <p className="font-black text-sm text-white leading-none">BoviGest</p>
-            <p className="text-xs font-bold mt-0.5" style={{ color: 'hsl(137 55% 60%)' }}>PRO</p>
+            <p className="text-xs font-bold mt-0.5 text-primary-mid">PRO</p>
           </div>
         )}
         <button
@@ -100,10 +101,13 @@ export default function Sidebar({
               >
                 <Icon size={18} className={`shrink-0 ${isActive ? 'text-white' : ''}`} />
                 {!collapsed && (
-                  <span className="text-sm truncate">{item.label}</span>
+                  <span className="text-sm truncate flex-1">{item.label}</span>
                 )}
-                {isActive && !collapsed && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                {item.soon && !collapsed && (
+                  <span className="ml-auto text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-white/10 text-white/40 shrink-0">Em breve</span>
+                )}
+                {isActive && !collapsed && !item.soon && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full bg-success shrink-0" />
                 )}
               </button>
             </div>
@@ -124,13 +128,13 @@ export default function Sidebar({
             </div>
           )}
           {!collapsed && (
-            <button onClick={onLogout} className="text-white/30 hover:text-red-400 transition-colors shrink-0" title="Sair">
+            <button onClick={onLogout} className="text-white/30 hover:text-destructive transition-colors shrink-0" title="Sair">
               <LogOut size={14} />
             </button>
           )}
         </div>
         {collapsed && (
-          <button onClick={onLogout} className="w-full mt-1 flex justify-center text-white/30 hover:text-red-400 transition-colors py-1" title="Sair">
+          <button onClick={onLogout} className="w-full mt-1 flex justify-center text-white/30 hover:text-destructive transition-colors py-1" title="Sair">
             <LogOut size={14} />
           </button>
         )}

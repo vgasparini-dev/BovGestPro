@@ -27,7 +27,9 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					light: 'hsl(var(--primary-light))',
+					mid: 'hsl(var(--primary-mid))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -53,15 +55,33 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))',
+					soft: 'hsl(var(--success-bg))',
+					fg: 'hsl(var(--success-fg))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					soft: 'hsl(var(--warning-bg))',
+					fg: 'hsl(var(--warning-fg))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					soft: 'hsl(var(--info-bg))',
+					fg: 'hsl(var(--info-fg))'
+				},
+				'destructive-soft': {
+					DEFAULT: 'hsl(var(--destructive-bg))',
+					fg: 'hsl(var(--destructive-fg))'
+				},
+				chip: {
+					pink:   { DEFAULT: 'hsl(var(--chip-pink))',   soft: 'hsl(var(--chip-pink-bg))',   fg: 'hsl(var(--chip-pink-fg))' },
+					purple: { DEFAULT: 'hsl(var(--chip-purple))', soft: 'hsl(var(--chip-purple-bg))', fg: 'hsl(var(--chip-purple-fg))' },
+					cyan:   { DEFAULT: 'hsl(var(--chip-cyan))',   soft: 'hsl(var(--chip-cyan-bg))',   fg: 'hsl(var(--chip-cyan-fg))' },
+					teal:   { DEFAULT: 'hsl(var(--chip-teal))',   soft: 'hsl(var(--chip-teal-bg))',   fg: 'hsl(var(--chip-teal-fg))' },
+					indigo: { DEFAULT: 'hsl(var(--chip-indigo))', soft: 'hsl(var(--chip-indigo-bg))', fg: 'hsl(var(--chip-indigo-fg))' },
+					orange: { DEFAULT: 'hsl(var(--chip-orange))', soft: 'hsl(var(--chip-orange-bg))', fg: 'hsl(var(--chip-orange-fg))' }
 				}
 			},
 			borderRadius: {

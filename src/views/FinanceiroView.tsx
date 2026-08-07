@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DollarSign, Plus, TrendingUp, TrendingDown, Search, X, Trash2 } from 'lucide-react';
 import type { Financeiro } from '../types';
+import { Badge } from '@/components/ui/badge';
 
 type Props = { financeiro: Financeiro[]; onSave: (f: Financeiro, isNew: boolean) => void; onDelete: (id: string) => void; };
 
@@ -28,7 +29,7 @@ function Modal({ initial, onClose, onSave }: { initial: Partial<Financeiro>; onC
             <div className="flex gap-2">
               {(['receita', 'despesa'] as const).map(t => (
                 <button key={t} type="button" onClick={() => set('tipo', t)}
-                  className={`flex-1 py-2 rounded-xl font-bold text-sm border transition-colors ${form.tipo === t ? t === 'receita' ? 'bg-green-600 text-white border-green-600' : 'bg-red-600 text-white border-red-600' : 'border-border text-muted-foreground hover:bg-muted'}`}>
+                  className={`flex-1 py-2 rounded-xl font-bold text-sm border transition-colors ${form.tipo === t ? t === 'receita' ? 'bg-success text-success-foreground border-success' : 'bg-destructive text-destructive-foreground border-destructive' : 'border-border text-muted-foreground hover:bg-muted'}`}>
                   {t === 'receita' ? 'Receita' : 'Despesa'}
                 </button>
               ))}
@@ -110,17 +111,17 @@ export default function FinanceiroView({ financeiro, onSave, onDelete }: Props) 
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-card rounded-2xl border border-green-200 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-2"><TrendingUp size={16} className="text-green-600" /><span className="text-xs font-bold text-muted-foreground uppercase">Receitas (pagas)</span></div>
-          <p className="text-xl font-black text-green-700">{formatCurrency(totalReceitas)}</p>
+        <div className="bg-card rounded-2xl border border-success-fg/20 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-2"><TrendingUp size={16} className="text-success-fg" /><span className="text-xs font-bold text-muted-foreground uppercase">Receitas (pagas)</span></div>
+          <p className="text-xl font-black text-success-fg">{formatCurrency(totalReceitas)}</p>
         </div>
-        <div className="bg-card rounded-2xl border border-red-200 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-2"><TrendingDown size={16} className="text-red-600" /><span className="text-xs font-bold text-muted-foreground uppercase">Despesas (pagas)</span></div>
-          <p className="text-xl font-black text-red-700">{formatCurrency(totalDespesas)}</p>
+        <div className="bg-card rounded-2xl border border-destructive-soft-fg/20 p-5 shadow-sm">
+          <div className="flex items-center gap-2 mb-2"><TrendingDown size={16} className="text-destructive-soft-fg" /><span className="text-xs font-bold text-muted-foreground uppercase">Despesas (pagas)</span></div>
+          <p className="text-xl font-black text-destructive-soft-fg">{formatCurrency(totalDespesas)}</p>
         </div>
-        <div className={`rounded-2xl p-5 shadow-sm ${saldo >= 0 ? 'bg-primary/90' : 'bg-red-800'}`}>
-          <p className="text-xs font-bold text-white/60 uppercase mb-2">Saldo Geral</p>
-          <p className="text-xl font-black text-white">{formatCurrency(saldo)}</p>
+        <div className={`rounded-2xl p-5 shadow-sm ${saldo >= 0 ? 'bg-primary/90' : 'bg-destructive'}`}>
+          <p className="text-xs font-bold text-primary-foreground/70 uppercase mb-2">Saldo Geral</p>
+          <p className="text-xl font-black text-primary-foreground">{formatCurrency(saldo)}</p>
         </div>
       </div>
 
@@ -148,20 +149,20 @@ export default function FinanceiroView({ financeiro, onSave, onDelete }: Props) 
               {filtered.map(f => (
                 <tr key={f.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-5 py-3.5">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${f.tipo === 'receita' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <Badge variant={f.tipo === 'receita' ? 'success' : 'danger'} className="inline-flex items-center gap-1">
                       {f.tipo === 'receita' ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                       {f.tipo === 'receita' ? 'Receita' : 'Despesa'}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-5 py-3.5 text-xs text-muted-foreground font-medium">{f.categoria}</td>
                   <td className="px-5 py-3.5 text-sm font-medium text-foreground">{f.descricao}</td>
                   <td className="px-5 py-3.5 font-black text-sm text-foreground">{formatCurrency(f.valor)}</td>
                   <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">{new Date(f.data).toLocaleDateString('pt-BR')}</td>
                   <td className="px-5 py-3.5">
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${f.status === 'pago' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{f.status === 'pago' ? 'Pago' : 'Pendente'}</span>
+                    <Badge variant={f.status === 'pago' ? 'success' : 'warning'}>{f.status === 'pago' ? 'Pago' : 'Pendente'}</Badge>
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <button onClick={() => onDelete(f.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                    <button onClick={() => onDelete(f.id)} className="p-2 text-destructive hover:bg-destructive-soft rounded-lg transition-colors"><Trash2 size={13} /></button>
                   </td>
                 </tr>
               ))}

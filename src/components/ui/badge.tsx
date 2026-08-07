@@ -15,6 +15,17 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        success: "border-transparent bg-success-soft text-success-fg",
+        warning: "border-transparent bg-warning-soft text-warning-fg",
+        info: "border-transparent bg-info-soft text-info-fg",
+        danger: "border-transparent bg-destructive-soft text-destructive-soft-fg",
+        muted: "border-transparent bg-muted text-muted-foreground",
+        pink: "border-transparent bg-chip-pink-soft text-chip-pink-fg",
+        purple: "border-transparent bg-chip-purple-soft text-chip-purple-fg",
+        cyan: "border-transparent bg-chip-cyan-soft text-chip-cyan-fg",
+        teal: "border-transparent bg-chip-teal-soft text-chip-teal-fg",
+        indigo: "border-transparent bg-chip-indigo-soft text-chip-indigo-fg",
+        orange: "border-transparent bg-chip-orange-soft text-chip-orange-fg",
       },
     },
     defaultVariants: {

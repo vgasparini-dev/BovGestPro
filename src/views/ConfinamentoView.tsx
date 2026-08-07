@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import {
-  Plus, Search, Edit, Trash2, Warehouse, X, AlertTriangle,
+  Plus, Search, Edit, Trash2, Warehouse, X,
   TrendingUp, Scale, DollarSign, CalendarClock,
 } from 'lucide-react';
 import type { Confinamento } from '../types';
 import { diasConfinado, gmdConfinamento } from '../lib/zootecnia';
+import { Badge } from '@/components/ui/badge';
+import StatCard from '@/components/StatCard';
+import EmptyState from '@/components/EmptyState';
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog';
 
 type Props = { confinamento: Confinamento[]; onSave: (c: Confinamento, isNew: boolean) => void; onDelete: (id: string) => void; };
 
@@ -14,13 +18,14 @@ function formatCurrency(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+const STATUS_VARIANT = {
+  'Em confinamento': 'info',
+  'Finalizado': 'success',
+  'Vendido': 'warning',
+} as const;
+
 function StatusBadge({ status }: { status: Confinamento['status'] }) {
-  const map = {
-    'Em confinamento': 'bg-blue-100 text-blue-700',
-    'Finalizado': 'bg-green-100 text-green-700',
-    'Vendido': 'bg-amber-100 text-amber-700',
-  };
-  return <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${map[status]}`}>{status}</span>;
+  return <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>;
 }
 
 function Modal({ mode, initial, onClose, onSave }: {
@@ -159,22 +164,10 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Em confinamento', val: ativos.length, icon: Warehouse, color: 'bg-primary/10 text-primary' },
-          { label: 'Peso Médio Entrada', val: `${pesoMedioEntrada.toFixed(0)}kg`, icon: Scale, color: 'bg-amber-100 text-amber-700' },
-          { label: 'GMD Médio', val: `${gmdMedio.toFixed(2)}kg/dia`, icon: TrendingUp, color: 'bg-green-100 text-green-700' },
-          { label: 'Custo Diário Total', val: formatCurrency(custoDiarioTotal), icon: DollarSign, color: 'bg-purple-100 text-purple-700' },
-        ].map(s => (
-          <div key={s.label} className="bg-card rounded-2xl border border-border p-4 shadow-sm flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
-              <s.icon size={18} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-lg font-black text-foreground truncate">{s.val}</p>
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide truncate">{s.label}</p>
-            </div>
-          </div>
-        ))}
+        <StatCard variant="inline" icon={Warehouse} label="Em confinamento" value={ativos.length} tone="primary" />
+        <StatCard variant="inline" icon={Scale} label="Peso Médio Entrada" value={`${pesoMedioEntrada.toFixed(0)}kg`} tone="warning" />
+        <StatCard variant="inline" icon={TrendingUp} label="GMD Médio" value={`${gmdMedio.toFixed(2)}kg/dia`} tone="success" />
+        <StatCard variant="inline" icon={DollarSign} label="Custo Diário Total" value={formatCurrency(custoDiarioTotal)} tone="purple" />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -191,7 +184,7 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
 
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="py-16 text-center text-muted-foreground"><Warehouse size={32} className="mx-auto mb-3 opacity-30" /><p className="font-bold text-sm">Nenhum lançamento encontrado.</p></div>
+          <EmptyState icon={Warehouse} title="Nenhum lançamento encontrado." />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -213,15 +206,15 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
                       </td>
                       <td className="px-5 py-3.5 text-sm font-medium text-foreground whitespace-nowrap">{c.pesoEntrada}kg → <span className="font-black">{c.pesoAtual}kg</span></td>
                       <td className="px-5 py-3.5">
-                        <span className={`font-black text-sm ${g >= 1 ? 'text-green-700' : g > 0 ? 'text-amber-700' : 'text-red-700'}`}>{g.toFixed(2)}kg/d</span>
+                        <span className={`font-black text-sm ${g >= 1 ? 'text-success' : g > 0 ? 'text-warning' : 'text-destructive'}`}>{g.toFixed(2)}kg/d</span>
                       </td>
                       <td className="px-5 py-3.5 text-sm text-muted-foreground whitespace-nowrap">{formatCurrency(c.custoDiario)}</td>
                       <td className="px-5 py-3.5"><StatusBadge status={c.status} /></td>
                       <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">{c.previsaoSaida ? new Date(c.previsaoSaida).toLocaleDateString('pt-BR') : '—'}</td>
                       <td className="px-5 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => { setEditing(c); setModalMode('edit'); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={13} /></button>
-                          <button onClick={() => setDeleteTarget(c)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                          <button onClick={() => { setEditing(c); setModalMode('edit'); }} className="p-2 text-info hover:bg-info-soft rounded-lg transition-colors"><Edit size={13} /></button>
+                          <button onClick={() => setDeleteTarget(c)} className="p-2 text-destructive hover:bg-destructive-soft rounded-lg transition-colors"><Trash2 size={13} /></button>
                         </div>
                       </td>
                     </tr>
@@ -235,19 +228,13 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
       </div>
 
       {modalMode && <Modal mode={modalMode} initial={editing || { status: 'Em confinamento' }} onClose={() => { setModalMode(null); setEditing(null); }} onSave={handleSave} />}
-      {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-7 text-center">
-            <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4"><AlertTriangle size={24} className="text-destructive" /></div>
-            <h2 className="font-black text-lg text-foreground mb-1">Remover Lançamento</h2>
-            <p className="text-muted-foreground text-sm mb-6">Remover animal <span className="font-black text-foreground">{deleteTarget.brinco}</span> do confinamento?</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-muted text-foreground border border-border hover:bg-muted/70 transition-colors">Cancelar</button>
-              <button onClick={() => { onDelete(deleteTarget.id); setDeleteTarget(null); }} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors flex items-center justify-center gap-2"><Trash2 size={14} /> Remover</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        title="Remover Lançamento"
+        description={<>Remover animal <span className="font-black text-foreground">{deleteTarget?.brinco}</span> do confinamento?</>}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => { if (deleteTarget) onDelete(deleteTarget.id); setDeleteTarget(null); }}
+      />
     </div>
   );
 }

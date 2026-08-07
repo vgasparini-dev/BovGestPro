@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import {
   Users, Plus, Edit, Trash2, Search, Shield, UserCheck,
-  UserX, Eye, EyeOff, AlertTriangle, X, CheckCircle2,
+  UserX, Eye, EyeOff, X, CheckCircle2,
   Crown, Stethoscope, Clock
 } from 'lucide-react';
 import type { AppUser, UserRole, UserStatus } from '../types';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
+import StatCard from '@/components/StatCard';
+import EmptyState from '@/components/EmptyState';
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog';
 
 type Props = {
   users: AppUser[];
@@ -13,38 +17,45 @@ type Props = {
   adminEmail: string;
 };
 
-const ROLE_META: Record<UserRole, { label: string; bg: string; text: string; icon: typeof Shield }> = {
-  Admin:      { label: 'Admin',      bg: 'bg-purple-100', text: 'text-purple-700', icon: Crown },
-  Operador:   { label: 'Operador',   bg: 'bg-blue-100',   text: 'text-blue-700',   icon: UserCheck },
-  Veterinario:{ label: 'Veterinário',bg: 'bg-teal-100',   text: 'text-teal-700',   icon: Stethoscope },
+const ROLE_META: Record<UserRole, { label: string; variant: BadgeProps['variant']; icon: typeof Shield }> = {
+  Admin:      { label: 'Admin',      variant: 'purple', icon: Crown },
+  Operador:   { label: 'Operador',   variant: 'info',   icon: UserCheck },
+  Veterinario:{ label: 'Veterinário',variant: 'teal',   icon: Stethoscope },
 };
 
 function RoleBadge({ role }: { role: UserRole }) {
   const m = ROLE_META[role];
   const Icon = m.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${m.bg} ${m.text}`}>
+    <Badge variant={m.variant} className="inline-flex items-center gap-1">
       <Icon size={10} />{m.label}
-    </span>
+    </Badge>
   );
 }
 
 function StatusBadge({ status }: { status: UserStatus }) {
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold
-      ${status === 'Ativo' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${status === 'Ativo' ? 'bg-green-500' : 'bg-muted-foreground'}`} />
+    <Badge variant={status === 'Ativo' ? 'success' : 'muted'} className="inline-flex items-center gap-1">
+      <span className={`w-1.5 h-1.5 rounded-full ${status === 'Ativo' ? 'bg-success-fg' : 'bg-muted-foreground'}`} />
       {status}
-    </span>
+    </Badge>
   );
 }
 
+const AVATAR_VARIANTS: BadgeProps['variant'][] = ['purple', 'info', 'pink', 'warning', 'teal'];
+const AVATAR_CLASSES: Record<string, string> = {
+  purple: 'bg-chip-purple-soft text-chip-purple-fg',
+  info: 'bg-info-soft text-info-fg',
+  pink: 'bg-chip-pink-soft text-chip-pink-fg',
+  warning: 'bg-warning-soft text-warning-fg',
+  teal: 'bg-chip-teal-soft text-chip-teal-fg',
+};
+
 function UserAvatar({ nome, size = 'md' }: { nome: string; size?: 'sm' | 'md' }) {
-  const colors = ['bg-purple-100 text-purple-700', 'bg-blue-100 text-blue-700', 'bg-pink-100 text-pink-700', 'bg-amber-100 text-amber-700', 'bg-teal-100 text-teal-700'];
-  const idx = nome.charCodeAt(0) % colors.length;
+  const variant = AVATAR_VARIANTS[nome.charCodeAt(0) % AVATAR_VARIANTS.length] as string;
   const cls = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm';
   return (
-    <div className={`${cls} ${colors[idx]} rounded-full flex items-center justify-center font-black shrink-0`}>
+    <div className={`${cls} ${AVATAR_CLASSES[variant]} rounded-full flex items-center justify-center font-black shrink-0`}>
       {(nome || 'U')[0].toUpperCase()}
     </div>
   );
@@ -141,23 +152,13 @@ function DeleteDialog({ user, onConfirm, onCancel }: {
   user: AppUser; onConfirm: () => void; onCancel: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-7 text-center">
-        <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <AlertTriangle size={24} className="text-destructive" />
-        </div>
-        <h2 className="font-black text-lg text-foreground mb-1">Remover Usuário</h2>
-        <p className="text-muted-foreground text-sm mb-6">
-          Remover <span className="font-black text-foreground">{user.nome}</span>?<br />Esta ação não pode ser desfeita.
-        </p>
-        <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-muted text-foreground border border-border hover:bg-muted/70 transition-colors">Cancelar</button>
-          <button onClick={onConfirm} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors flex items-center justify-center gap-2">
-            <Trash2 size={14} /> Remover
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDeleteDialog
+      open
+      title="Remover Usuário"
+      description={<>Remover <span className="font-black text-foreground">{user.nome}</span>?<br />Esta ação não pode ser desfeita.</>}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
   );
 }
 
@@ -219,22 +220,10 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total', val: stats.total, icon: Users, color: 'bg-primary/10 text-primary' },
-          { label: 'Admins', val: stats.admins, icon: Crown, color: 'bg-purple-100 text-purple-700' },
-          { label: 'Ativos', val: stats.ativos, icon: CheckCircle2, color: 'bg-green-100 text-green-700' },
-          { label: 'Inativos', val: stats.inativos, icon: UserX, color: 'bg-muted text-muted-foreground' },
-        ].map(s => (
-          <div key={s.label} className="bg-card rounded-2xl border border-border p-4 shadow-sm flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.color}`}>
-              <s.icon size={18} />
-            </div>
-            <div>
-              <p className="text-xl font-black text-foreground">{s.val}</p>
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">{s.label}</p>
-            </div>
-          </div>
-        ))}
+        <StatCard variant="inline" icon={Users} label="Total" value={stats.total} tone="primary" />
+        <StatCard variant="inline" icon={Crown} label="Admins" value={stats.admins} tone="purple" />
+        <StatCard variant="inline" icon={CheckCircle2} label="Ativos" value={stats.ativos} tone="success" />
+        <StatCard variant="inline" icon={UserX} label="Inativos" value={stats.inativos} tone="muted" />
       </div>
 
       {/* Filters */}
@@ -257,10 +246,7 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
       {/* Table */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="py-16 text-center text-muted-foreground">
-            <Users size={32} className="mx-auto mb-3 opacity-30" />
-            <p className="font-bold text-sm">{search ? 'Nenhum resultado.' : 'Nenhum usuário cadastrado.'}</p>
-          </div>
+          <EmptyState icon={Users} title={search ? 'Nenhum resultado.' : 'Nenhum usuário cadastrado.'} />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -290,12 +276,12 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => { setEditing(u); setModalMode('edit'); }}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                          className="p-2 text-info hover:bg-info-soft rounded-lg transition-colors" title="Editar">
                           <Edit size={14} />
                         </button>
                         <button onClick={() => setDeleteTarget(u)}
                           disabled={u.email === adminEmail}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Remover">
+                          className="p-2 text-destructive hover:bg-destructive-soft rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Remover">
                           <Trash2 size={14} />
                         </button>
                       </div>

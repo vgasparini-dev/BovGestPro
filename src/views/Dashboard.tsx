@@ -7,23 +7,10 @@ import {
 } from 'lucide-react';
 import type { AppData, CloudStatus } from '../types';
 import { calcularIndices } from '../lib/zootecnia';
+import StatCard from '../components/StatCard';
+import EmptyState from '../components/EmptyState';
 
 type Props = { data: AppData; cloud: CloudStatus; adminName: string; onNavigateIndices: () => void };
-
-function KpiCard({ icon: Icon, label, value, sub, color }: {
-  icon: typeof Beef; label: string; value: string | number; sub?: string; color: string;
-}) {
-  return (
-    <div className="bg-card rounded-2xl border border-border p-5 card-hover shadow-sm">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${color}`}>
-        <Icon size={20} />
-      </div>
-      <p className="text-lg sm:text-xl font-black text-foreground leading-tight">{value}</p>
-      {sub && <p className="text-xs text-muted-foreground font-medium mt-0.5">{sub}</p>}
-      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mt-1">{label}</p>
-    </div>
-  );
-}
 
 function SectionHeader({ title, icon: Icon }: { title: string; icon: typeof Beef }) {
   return (
@@ -38,10 +25,17 @@ function formatCurrency(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+const CLOUD_META: Record<CloudStatus, { label: string; sub: string; badgeClass: string; panelClass: string; iconClass: string; dotClass: string; Icon: typeof Cloud }> = {
+  online:     { label: 'Nuvem Sincronizada', sub: 'Dados em tempo real', badgeClass: 'bg-success-soft text-success-fg border-success-fg/20', panelClass: 'bg-success-soft border-success-fg/20', iconClass: 'text-success-fg', dotClass: 'bg-success animate-pulse', Icon: Cloud },
+  error:      { label: 'Sem Sincronização', sub: 'Verifique a internet', badgeClass: 'bg-destructive-soft text-destructive-soft-fg border-destructive-soft-fg/20', panelClass: 'bg-destructive-soft border-destructive-soft-fg/20', iconClass: 'text-destructive-soft-fg', dotClass: 'bg-destructive', Icon: CloudOff },
+  connecting: { label: 'Conectando...', sub: 'Aguarde...', badgeClass: 'bg-muted text-muted-foreground border-border', panelClass: 'bg-muted border-border', iconClass: 'text-muted-foreground animate-spin', dotClass: 'bg-muted-foreground', Icon: Loader2 },
+};
+
 export default function Dashboard({ data, cloud, adminName, onNavigateIndices }: Props) {
   const hoje = useMemo(() => new Date(), []);
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
+  const cloudMeta = CLOUD_META[cloud];
 
   const stats = useMemo(() => {
     const totalAnimais = data.animais.length;
@@ -76,13 +70,19 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
     const totalAlertas = carencia.length + vacProximas.length + insumoCrit.length;
 
     const recentes = [
-      ...data.pesagens.slice(-3).map(p => ({ tipo: 'pesagem', desc: `Pesagem: Brinco ${p.brinco} → ${p.pesoAtual} kg`, data: p.data, cor: 'bg-orange-100 text-orange-600' })),
-      ...data.vacinacoes.slice(-3).map(v => ({ tipo: 'vacina', desc: `Vacinação: ${v.vacina} — Lote ${v.lote}`, data: v.dataAplicacao, cor: 'bg-blue-100 text-blue-600' })),
-      ...data.nascimentos.slice(-3).map(n => ({ tipo: 'nasc', desc: `Nascimento: Bezerro ${n.brincoBezerro} (Matriz: ${n.brincoMatriz})`, data: n.data, cor: 'bg-pink-100 text-pink-600' })),
+      ...data.pesagens.slice(-3).map(p => ({ tipo: 'pesagem' as const, desc: `Pesagem: Brinco ${p.brinco} → ${p.pesoAtual} kg`, data: p.data })),
+      ...data.vacinacoes.slice(-3).map(v => ({ tipo: 'vacina' as const, desc: `Vacinação: ${v.vacina} — Lote ${v.lote}`, data: v.dataAplicacao })),
+      ...data.nascimentos.slice(-3).map(n => ({ tipo: 'nasc' as const, desc: `Nascimento: Bezerro ${n.brincoBezerro} (Matriz: ${n.brincoMatriz})`, data: n.data })),
     ].filter(x => x.data).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()).slice(0, 5);
 
     return { totalAnimais, femeas, machos, prenhes, leiteMes, pesoMedio, receitas, despesas, saldoMes, maxBar, carencia, vacProximas, insumoCrit, totalAlertas, recentes, finMes };
   }, [data, mesAtual, anoAtual, hoje]);
+
+  const RECENTE_META = {
+    pesagem: { label: 'P', cls: 'bg-chip-orange-soft text-chip-orange-fg' },
+    vacina: { label: 'V', cls: 'bg-info-soft text-info-fg' },
+    nasc: { label: 'N', cls: 'bg-chip-pink-soft text-chip-pink-fg' },
+  } as const;
 
   const indices = useMemo(() => calcularIndices(data), [data]);
 
@@ -100,65 +100,57 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
             {hoje.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border
-          ${cloud === 'online' ? 'bg-green-50 text-green-700 border-green-200'
-          : cloud === 'error' ? 'bg-red-50 text-red-700 border-red-200'
-          : 'bg-muted text-muted-foreground border-border'}`}>
-          {cloud === 'online' ? <><Cloud size={12} /> Nuvem online</>
-          : cloud === 'error' ? <><CloudOff size={12} /> Sem ligação</>
-          : <><Loader2 size={12} className="animate-spin" /> Conectando...</>}
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${cloudMeta.badgeClass}`}>
+          <cloudMeta.Icon size={12} className={cloud === 'connecting' ? 'animate-spin' : ''} /> {cloudMeta.label}
         </div>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KpiCard icon={Beef} label="Cabeças" value={stats.totalAnimais} color="bg-primary/10 text-primary" />
-        <KpiCard icon={DollarSign} label="Saldo do Mês" value={formatCurrency(stats.saldoMes)} sub={stats.saldoMes >= 0 ? 'positivo' : 'negativo'} color={`${stats.saldoMes >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`} />
-        <KpiCard icon={Droplets} label="Leite do Mês" value={`${stats.leiteMes}L`} color="bg-cyan-100 text-cyan-700" />
-        <KpiCard icon={HeartPulse} label="Prenhes" value={stats.prenhes} color="bg-pink-100 text-pink-700" />
-        <KpiCard icon={Scale} label="Peso Médio" value={`${stats.pesoMedio}kg`} color="bg-amber-100 text-amber-700" />
-        <KpiCard icon={Users} label="Usuários" value={data.usuarios.filter(u => u.status === 'Ativo').length} sub="ativos" color="bg-purple-100 text-purple-700" />
+        <StatCard icon={Beef} label="Cabeças" value={stats.totalAnimais} tone="primary" />
+        <StatCard icon={DollarSign} label="Saldo do Mês" value={formatCurrency(stats.saldoMes)} sub={stats.saldoMes >= 0 ? 'positivo' : 'negativo'} tone={stats.saldoMes >= 0 ? 'success' : 'danger'} />
+        <StatCard icon={Droplets} label="Leite do Mês" value={`${stats.leiteMes}L`} tone="cyan" />
+        <StatCard icon={HeartPulse} label="Prenhes" value={stats.prenhes} tone="pink" />
+        <StatCard icon={Scale} label="Peso Médio" value={`${stats.pesoMedio}kg`} tone="warning" />
+        <StatCard icon={Users} label="Usuários" value={data.usuarios.filter(u => u.status === 'Ativo').length} sub="ativos" tone="purple" />
       </div>
 
       {/* Row 2 — Alertas + Financeiro */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Alertas */}
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-amber-50/60">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-warning-soft/60">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={16} className="text-amber-600" />
+              <AlertTriangle size={16} className="text-warning" />
               <h3 className="font-black text-sm text-foreground">Alertas</h3>
               {stats.totalAlertas > 0 && (
-                <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center">{stats.totalAlertas}</span>
+                <span className="w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-black flex items-center justify-center">{stats.totalAlertas}</span>
               )}
             </div>
           </div>
           <div className="divide-y divide-border max-h-60 overflow-y-auto scrollbar-thin">
-            {stats.totalAlertas === 0 ? (
-              <div className="px-5 py-8 text-center text-muted-foreground">
-                <CheckCircle2 size={28} className="mx-auto mb-2 text-primary" />
-                <p className="font-bold text-sm">Nenhum alerta ativo</p>
-              </div>
-            ) : null}
+            {stats.totalAlertas === 0 && (
+              <EmptyState variant="row" icon={CheckCircle2} title="Nenhum alerta ativo" />
+            )}
             {stats.carencia.map((v, i) => (
-              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-orange-50/40 transition-colors">
-                <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center shrink-0"><ShieldAlert size={13} className="text-orange-600" /></div>
+              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-chip-orange-soft/40 transition-colors">
+                <div className="w-7 h-7 bg-chip-orange-soft rounded-lg flex items-center justify-center shrink-0"><ShieldAlert size={13} className="text-chip-orange-fg" /></div>
                 <div className="flex-1 min-w-0"><p className="font-bold text-xs">Em carência: Lote {v.lote}</p><p className="text-[11px] text-muted-foreground">Liberação: {v.dataLiberacao}</p></div>
-                <span className="bg-orange-100 text-orange-700 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">Carência</span>
+                <span className="bg-chip-orange-soft text-chip-orange-fg text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">Carência</span>
               </div>
             ))}
             {stats.vacProximas.map((c, i) => (
-              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-blue-50/40 transition-colors">
-                <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center shrink-0"><CalendarDays size={13} className="text-blue-600" /></div>
+              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-info-soft/40 transition-colors">
+                <div className="w-7 h-7 bg-info-soft rounded-lg flex items-center justify-center shrink-0"><CalendarDays size={13} className="text-info-fg" /></div>
                 <div className="flex-1 min-w-0"><p className="font-bold text-xs">Vacina: {c.doenca}</p><p className="text-[11px] text-muted-foreground">{c.mes} — {c.publico}</p></div>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${c.obrigatorio ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{c.obrigatorio ? 'Obrig.' : 'Recom.'}</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${c.obrigatorio ? 'bg-destructive-soft text-destructive-soft-fg' : 'bg-info-soft text-info-fg'}`}>{c.obrigatorio ? 'Obrig.' : 'Recom.'}</span>
               </div>
             ))}
             {stats.insumoCrit.map((ins, i) => (
-              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-red-50/40 transition-colors">
-                <div className="w-7 h-7 bg-red-100 rounded-lg flex items-center justify-center shrink-0"><PackagePlus size={13} className="text-red-600" /></div>
+              <div key={i} className="flex items-center gap-3 px-5 py-3 hover:bg-destructive-soft/40 transition-colors">
+                <div className="w-7 h-7 bg-destructive-soft rounded-lg flex items-center justify-center shrink-0"><PackagePlus size={13} className="text-destructive-soft-fg" /></div>
                 <div className="flex-1 min-w-0"><p className="font-bold text-xs">Estoque crítico: {ins.nome}</p><p className="text-[11px] text-muted-foreground">{ins.quantidade} {ins.unidade} (mín: {ins.estoqueMinimo})</p></div>
-                <span className="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">Crítico</span>
+                <span className="bg-destructive-soft text-destructive-soft-fg text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">Crítico</span>
               </div>
             ))}
           </div>
@@ -175,19 +167,19 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
           </div>
           <div className="p-5 space-y-4">
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-green-50 rounded-xl p-3 text-center">
-                <TrendingUp size={14} className="text-green-600 mx-auto mb-1" />
+              <div className="bg-success-soft rounded-xl p-3 text-center">
+                <TrendingUp size={14} className="text-success-fg mx-auto mb-1" />
                 <p className="text-[11px] font-bold text-muted-foreground uppercase">Receitas</p>
-                <p className="text-sm font-black text-green-700 mt-0.5">{formatCurrency(stats.receitas)}</p>
+                <p className="text-sm font-black text-success-fg mt-0.5">{formatCurrency(stats.receitas)}</p>
               </div>
-              <div className="bg-red-50 rounded-xl p-3 text-center">
-                <TrendingDown size={14} className="text-red-600 mx-auto mb-1" />
+              <div className="bg-destructive-soft rounded-xl p-3 text-center">
+                <TrendingDown size={14} className="text-destructive-soft-fg mx-auto mb-1" />
                 <p className="text-[11px] font-bold text-muted-foreground uppercase">Despesas</p>
-                <p className="text-sm font-black text-red-700 mt-0.5">{formatCurrency(stats.despesas)}</p>
+                <p className="text-sm font-black text-destructive-soft-fg mt-0.5">{formatCurrency(stats.despesas)}</p>
               </div>
-              <div className={`rounded-xl p-3 text-center ${stats.saldoMes >= 0 ? 'bg-primary/90' : 'bg-red-800'}`}>
-                <p className="text-[11px] font-bold text-white/60 uppercase">Saldo</p>
-                <p className="text-sm font-black text-white mt-0.5">{formatCurrency(stats.saldoMes)}</p>
+              <div className={`rounded-xl p-3 text-center ${stats.saldoMes >= 0 ? 'bg-primary/90' : 'bg-destructive'}`}>
+                <p className="text-[11px] font-bold text-primary-foreground/70 uppercase">Saldo</p>
+                <p className="text-sm font-black text-primary-foreground mt-0.5">{formatCurrency(stats.saldoMes)}</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -196,7 +188,7 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
                   <span>Receitas</span><span>{formatCurrency(stats.receitas)}</span>
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full">
-                  <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${(stats.receitas / stats.maxBar) * 100}%` }} />
+                  <div className="h-full bg-success rounded-full transition-all" style={{ width: `${(stats.receitas / stats.maxBar) * 100}%` }} />
                 </div>
               </div>
               <div>
@@ -204,7 +196,7 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
                   <span>Despesas</span><span>{formatCurrency(stats.despesas)}</span>
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full">
-                  <div className="h-full bg-red-500 rounded-full transition-all" style={{ width: `${(stats.despesas / stats.maxBar) * 100}%` }} />
+                  <div className="h-full bg-destructive rounded-full transition-all" style={{ width: `${(stats.despesas / stats.maxBar) * 100}%` }} />
                 </div>
               </div>
             </div>
@@ -220,14 +212,11 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
           <SectionHeader title="Atividades Recentes" icon={Activity} />
           <div className="divide-y divide-border max-h-72 overflow-y-auto scrollbar-thin">
             {stats.recentes.length === 0 ? (
-              <div className="px-5 py-8 text-center text-muted-foreground">
-                <Activity size={24} className="mx-auto mb-2 opacity-30" />
-                <p className="font-bold text-xs">Nenhuma atividade ainda</p>
-              </div>
+              <EmptyState variant="row" icon={Activity} title="Nenhuma atividade ainda" />
             ) : stats.recentes.map((a, i) => (
               <div key={i} className="flex items-start gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
-                <div className={`w-7 h-7 ${a.cor} rounded-lg flex items-center justify-center shrink-0 text-xs font-black`}>
-                  {a.tipo === 'pesagem' ? 'P' : a.tipo === 'vacina' ? 'V' : 'N'}
+                <div className={`w-7 h-7 ${RECENTE_META[a.tipo].cls} rounded-lg flex items-center justify-center shrink-0 text-xs font-black`}>
+                  {RECENTE_META[a.tipo].label}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-xs leading-tight text-foreground">{a.desc}</p>
@@ -243,10 +232,7 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
           <SectionHeader title="Calendário Sanitário" icon={CalendarDays} />
           <div className="divide-y divide-border max-h-72 overflow-y-auto scrollbar-thin">
             {data.calendario.length === 0 ? (
-              <div className="px-5 py-8 text-center text-muted-foreground">
-                <CalendarDays size={24} className="mx-auto mb-2 opacity-30" />
-                <p className="font-bold text-xs">Sem eventos cadastrados</p>
-              </div>
+              <EmptyState variant="row" icon={CalendarDays} title="Sem eventos cadastrados" />
             ) : data.calendario.slice(0, 6).map((c) => (
               <div key={c.id} className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
                 <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
@@ -256,7 +242,7 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
                   <p className="font-bold text-xs text-foreground truncate">{c.doenca}</p>
                   <p className="text-[11px] text-muted-foreground truncate">{c.publico}</p>
                 </div>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${c.obrigatorio ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{c.obrigatorio ? 'Obrig.' : 'Recom.'}</span>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${c.obrigatorio ? 'bg-destructive-soft text-destructive-soft-fg' : 'bg-info-soft text-info-fg'}`}>{c.obrigatorio ? 'Obrig.' : 'Recom.'}</span>
               </div>
             ))}
           </div>
@@ -264,27 +250,14 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
 
         {/* Resumo do Rebanho + Status */}
         <div className="space-y-4">
-          <div className={`rounded-2xl border p-4 shadow-sm transition-colors
-            ${cloud === 'online' ? 'bg-green-50 border-green-200'
-            : cloud === 'error' ? 'bg-red-50 border-red-200'
-            : 'bg-muted border-border'}`}>
+          <div className={`rounded-2xl border p-4 shadow-sm transition-colors ${cloudMeta.panelClass}`}>
             <div className="flex items-center gap-3">
-              {cloud === 'online' ? <Cloud size={18} className="text-green-700 shrink-0" />
-              : cloud === 'error' ? <CloudOff size={18} className="text-red-600 shrink-0" />
-              : <Loader2 size={18} className="text-muted-foreground animate-spin shrink-0" />}
+              <cloudMeta.Icon size={18} className={`shrink-0 ${cloudMeta.iconClass}`} />
               <div className="flex-1 min-w-0">
-                <p className="font-black text-xs text-foreground">
-                  {cloud === 'online' ? 'Nuvem Sincronizada'
-                  : cloud === 'error' ? 'Sem Sincronização'
-                  : 'Conectando...'}
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  {cloud === 'online' ? 'Dados em tempo real'
-                  : cloud === 'error' ? 'Verifique a internet'
-                  : 'Aguarde...'}
-                </p>
+                <p className="font-black text-xs text-foreground">{cloudMeta.label}</p>
+                <p className="text-[11px] text-muted-foreground">{cloudMeta.sub}</p>
               </div>
-              <div className={`w-2 h-2 rounded-full shrink-0 ${cloud === 'online' ? 'bg-green-500 animate-pulse' : cloud === 'error' ? 'bg-red-500' : 'bg-muted-foreground'}`} />
+              <div className={`w-2 h-2 rounded-full shrink-0 ${cloudMeta.dotClass}`} />
             </div>
           </div>
 
@@ -293,11 +266,11 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
             <div className="space-y-2">
               {[
                 { label: 'Total de animais', val: stats.totalAnimais, icon: Beef, color: 'text-primary' },
-                { label: 'Fêmeas', val: stats.femeas, icon: HeartPulse, color: 'text-pink-600' },
-                { label: 'Machos', val: stats.machos, icon: Beef, color: 'text-blue-600' },
-                { label: 'Pesagens', val: data.pesagens.length, icon: Scale, color: 'text-amber-600' },
-                { label: 'Nascimentos', val: data.nascimentos.length, icon: Baby, color: 'text-green-600' },
-                { label: 'Insumos', val: data.insumos.length, icon: Package, color: 'text-purple-600' },
+                { label: 'Fêmeas', val: stats.femeas, icon: HeartPulse, color: 'text-chip-pink' },
+                { label: 'Machos', val: stats.machos, icon: Beef, color: 'text-info' },
+                { label: 'Pesagens', val: data.pesagens.length, icon: Scale, color: 'text-warning' },
+                { label: 'Nascimentos', val: data.nascimentos.length, icon: Baby, color: 'text-success' },
+                { label: 'Insumos', val: data.insumos.length, icon: Package, color: 'text-chip-purple' },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -311,17 +284,17 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
             <div className="mt-3 pt-3 border-t border-border space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <HeartPulse size={12} className="text-pink-600" />
+                  <HeartPulse size={12} className="text-chip-pink" />
                   <span className="text-xs font-medium text-muted-foreground">Taxa de Prenhez</span>
                 </div>
-                <span className="text-sm font-black text-pink-600">{indices.taxaPrenhez.toFixed(1)}%</span>
+                <span className="text-sm font-black text-chip-pink">{indices.taxaPrenhez.toFixed(1)}%</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <TrendingUp size={12} className="text-green-600" />
+                  <TrendingUp size={12} className="text-success" />
                   <span className="text-xs font-medium text-muted-foreground">GMD Médio do Rebanho</span>
                 </div>
-                <span className="text-sm font-black text-green-600">{indices.gmdRebanho.toFixed(2)}kg/d</span>
+                <span className="text-sm font-black text-success">{indices.gmdRebanho.toFixed(2)}kg/d</span>
               </div>
             </div>
             <button onClick={onNavigateIndices}

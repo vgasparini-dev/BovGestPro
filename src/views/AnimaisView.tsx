@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Beef, X, AlertTriangle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Beef, X } from 'lucide-react';
 import type { Animal } from '../types';
+import { Badge } from '@/components/ui/badge';
+import EmptyState from '@/components/EmptyState';
+import ConfirmDeleteDialog from '@/components/ConfirmDeleteDialog';
 
 type Props = { animals: Animal[]; onSave: (a: Animal, isNew: boolean) => void; onDelete: (id: string) => void; };
 
@@ -143,7 +146,7 @@ export default function AnimaisView({ animals, onSave, onDelete }: Props) {
 
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="py-16 text-center text-muted-foreground"><Beef size={32} className="mx-auto mb-3 opacity-30" /><p className="font-bold text-sm">Nenhum animal encontrado.</p></div>
+          <EmptyState icon={Beef} title="Nenhum animal encontrado." />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
@@ -159,18 +162,18 @@ export default function AnimaisView({ animals, onSave, onDelete }: Props) {
                     <td className="px-5 py-3.5 text-sm font-medium text-foreground">{a.nome || '—'}</td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{a.raca}</td>
                     <td className="px-5 py-3.5">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${a.sexo === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'}`}>{a.sexo === 'F' ? 'Fêmea' : 'Macho'}</span>
+                      <Badge variant={a.sexo === 'F' ? 'pink' : 'info'}>{a.sexo === 'F' ? 'Fêmea' : 'Macho'}</Badge>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">{a.dataNasc ? new Date(a.dataNasc).toLocaleDateString('pt-BR') : '—'}</td>
                     <td className="px-5 py-3.5 font-bold text-sm text-foreground">{a.peso} kg</td>
                     <td className="px-5 py-3.5 text-xs text-muted-foreground">{a.lote || '—'}</td>
                     <td className="px-5 py-3.5">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${a.status === 'Ativo' ? 'bg-green-100 text-green-700' : a.status === 'Vendido' ? 'bg-amber-100 text-amber-700' : 'bg-muted text-muted-foreground'}`}>{a.status}</span>
+                      <Badge variant={a.status === 'Ativo' ? 'success' : a.status === 'Vendido' ? 'warning' : 'muted'}>{a.status}</Badge>
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => { setEditing(a); setModalMode('edit'); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={13} /></button>
-                        <button onClick={() => setDeleteTarget(a)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={13} /></button>
+                        <button onClick={() => { setEditing(a); setModalMode('edit'); }} className="p-2 text-info hover:bg-info-soft rounded-lg transition-colors"><Edit size={13} /></button>
+                        <button onClick={() => setDeleteTarget(a)} className="p-2 text-destructive hover:bg-destructive-soft rounded-lg transition-colors"><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -183,19 +186,13 @@ export default function AnimaisView({ animals, onSave, onDelete }: Props) {
       </div>
 
       {modalMode && <Modal mode={modalMode} initial={editing || {}} onClose={() => { setModalMode(null); setEditing(null); }} onSave={handleSave} />}
-      {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card w-full max-w-sm rounded-2xl border border-border shadow-2xl p-7 text-center">
-            <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4"><AlertTriangle size={24} className="text-destructive" /></div>
-            <h2 className="font-black text-lg text-foreground mb-1">Remover Animal</h2>
-            <p className="text-muted-foreground text-sm mb-6">Remover <span className="font-black text-foreground">{deleteTarget.brinco}</span>?</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-muted text-foreground border border-border hover:bg-muted/70 transition-colors">Cancelar</button>
-              <button onClick={() => { onDelete(deleteTarget.id); setDeleteTarget(null); }} className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors flex items-center justify-center gap-2"><Trash2 size={14} /> Remover</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteDialog
+        open={!!deleteTarget}
+        title="Remover Animal"
+        description={<>Remover <span className="font-black text-foreground">{deleteTarget?.brinco}</span>?</>}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => { if (deleteTarget) onDelete(deleteTarget.id); setDeleteTarget(null); }}
+      />
     </div>
   );
 }

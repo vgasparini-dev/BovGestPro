@@ -4,22 +4,18 @@ import {
 } from 'lucide-react';
 import type { AppData } from '../types';
 import { calcularIndices, classificar, type Nivel } from '../lib/zootecnia';
+import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 type Props = { data: AppData };
 
-const NIVEL_STYLE: Record<Nivel, { label: string; bg: string; text: string; dot: string }> = {
-  bom:      { label: 'Bom',      bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
-  regular:  { label: 'Regular',  bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-  atencao:  { label: 'Atenção',  bg: 'bg-red-100',   text: 'text-red-700',   dot: 'bg-red-500' },
+const NIVEL_VARIANT: Record<Nivel, BadgeProps['variant']> = {
+  bom: 'success',
+  regular: 'warning',
+  atencao: 'danger',
 };
 
 function NivelBadge({ nivel }: { nivel: Nivel }) {
-  const s = NIVEL_STYLE[nivel];
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black ${s.bg} ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />{s.label}
-    </span>
-  );
+  return <Badge variant={NIVEL_VARIANT[nivel]}>{nivel === 'bom' ? 'Bom' : nivel === 'regular' ? 'Regular' : 'Atenção'}</Badge>;
 }
 
 function IndiceCard({ icon: Icon, label, valor, formula, nivel, color }: {
@@ -66,22 +62,22 @@ export default function IndicesZootecnicosView({ data }: Props) {
           <IndiceCard
             icon={HeartPulse} label="Taxa de Prenhez" valor={`${idx.taxaPrenhez.toFixed(1)}%`}
             formula="Fêmeas prenhes ou em gestação ÷ total em acompanhamento reprodutivo"
-            nivel={classificar(idx.taxaPrenhez, 85, 70)} color="bg-pink-100 text-pink-700"
+            nivel={classificar(idx.taxaPrenhez, 85, 70)} color="bg-chip-pink-soft text-chip-pink-fg"
           />
           <IndiceCard
             icon={Baby} label="Taxa de Natalidade" valor={`${idx.taxaNatalidade.toFixed(1)}%`}
             formula="Nascimentos no ano ÷ fêmeas do rebanho"
-            nivel={classificar(idx.taxaNatalidade, 80, 60)} color="bg-rose-100 text-rose-700"
+            nivel={classificar(idx.taxaNatalidade, 80, 60)} color="bg-chip-pink-soft text-chip-pink-fg"
           />
           <IndiceCard
             icon={Users2} label="Relação Macho:Fêmea" valor={`1:${(1 / (idx.relacaoMachoFemea || 1)).toFixed(1)}`}
             formula="Nº de machos para cada fêmea do rebanho (informativo)"
-            color="bg-blue-100 text-blue-700"
+            color="bg-info-soft text-info-fg"
           />
           <IndiceCard
             icon={ArrowRightLeft} label="Taxa de Desfrute" valor={`${idx.taxaDesfrute.toFixed(1)}%`}
             formula="Animais vendidos (rebanho + confinamento) ÷ total do rebanho"
-            nivel={classificar(idx.taxaDesfrute, 20, 10)} color="bg-indigo-100 text-indigo-700"
+            nivel={classificar(idx.taxaDesfrute, 20, 10)} color="bg-chip-indigo-soft text-chip-indigo-fg"
           />
         </div>
       </div>
@@ -93,22 +89,22 @@ export default function IndicesZootecnicosView({ data }: Props) {
           <IndiceCard
             icon={TrendingUp} label="GMD Médio do Rebanho" valor={`${idx.gmdRebanho.toFixed(2)}kg/dia`}
             formula="Ganho médio diário calculado a partir das pesagens registradas"
-            nivel={classificar(idx.gmdRebanho, 0.6, 0.3)} color="bg-green-100 text-green-700"
+            nivel={classificar(idx.gmdRebanho, 0.6, 0.3)} color="bg-success-soft text-success-fg"
           />
           <IndiceCard
             icon={Warehouse} label="GMD Médio do Confinamento" valor={`${idx.gmdConfinamentoMedio.toFixed(2)}kg/dia`}
             formula="Ganho médio diário dos animais atualmente em confinamento"
-            nivel={classificar(idx.gmdConfinamentoMedio, 1.2, 0.8)} color="bg-teal-100 text-teal-700"
+            nivel={classificar(idx.gmdConfinamentoMedio, 1.2, 0.8)} color="bg-chip-teal-soft text-chip-teal-fg"
           />
           <IndiceCard
             icon={Droplets} label="Produtividade Leiteira" valor={`${idx.produtividadeLeiteira.toFixed(0)}L/dia`}
             formula="Média de litros produzidos por dia com registro de ordenha"
-            color="bg-cyan-100 text-cyan-700"
+            color="bg-chip-cyan-soft text-chip-cyan-fg"
           />
           <IndiceCard
             icon={Scale} label="Peso Médio do Rebanho" valor={`${data.animais.length ? Math.round(data.animais.reduce((s, a) => s + a.peso, 0) / data.animais.length) : 0}kg`}
             formula="Peso médio de todos os animais ativos cadastrados"
-            color="bg-amber-100 text-amber-700"
+            color="bg-warning-soft text-warning-fg"
           />
         </div>
       </div>
@@ -120,12 +116,12 @@ export default function IndicesZootecnicosView({ data }: Props) {
           <IndiceCard
             icon={Syringe} label="Cobertura Vacinal" valor={`${idx.coberturaVacinal.toFixed(1)}%`}
             formula="Animais com pelo menos 1 vacinação registrada ÷ total do rebanho"
-            nivel={classificar(idx.coberturaVacinal, 90, 70)} color="bg-blue-100 text-blue-700"
+            nivel={classificar(idx.coberturaVacinal, 90, 70)} color="bg-info-soft text-info-fg"
           />
           <IndiceCard
             icon={Skull} label="Taxa de Mortalidade" valor={`${idx.taxaMortalidade.toFixed(1)}%`}
             formula="Animais com status 'Morto' ÷ total histórico do rebanho"
-            nivel={classificar(idx.taxaMortalidade, 2, 5, true)} color="bg-red-100 text-red-700"
+            nivel={classificar(idx.taxaMortalidade, 2, 5, true)} color="bg-destructive-soft text-destructive-soft-fg"
           />
         </div>
       </div>
