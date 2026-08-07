@@ -1,6 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import type { Animal, Financeiro, Confinamento, AppUser } from '@/types';
+import type {
+  Animal, Financeiro, Confinamento, AppUser,
+  Pesagem, Vacinacao, Nascimento, RegistroLeite, Insumo, Lote, Reproducao, Pasto,
+} from '@/types';
 
 // Loosen the client's table typing at this boundary so the service depends on
 // our own row shapes (below) instead of the framework-regenerated Database type.
@@ -54,6 +57,83 @@ type ProfileRow = {
   status: string | null;
   criado_em: string | null;
   ultimo_acesso: string | null;
+};
+
+type PesagemRow = {
+  id: string;
+  brinco: string | null;
+  peso_atual: number | null;
+  peso_anterior: number | null;
+  data_anterior: string | null;
+  data: string | null;
+  observacao: string | null;
+};
+
+type VacinacaoRow = {
+  id: string;
+  vacina: string | null;
+  lote: string | null;
+  brincos: string[] | null;
+  data_aplicacao: string | null;
+  data_liberacao: string | null;
+  veterinario: string | null;
+  observacao: string | null;
+};
+
+type NascimentoRow = {
+  id: string;
+  brinco_bezerro: string | null;
+  brinco_matriz: string | null;
+  brinco_pai: string | null;
+  data: string | null;
+  peso: number | null;
+  sexo: string | null;
+  observacao: string | null;
+};
+
+type LeiteRow = {
+  id: string;
+  data: string | null;
+  quantidade: number | null;
+  turno: string | null;
+  responsavel: string | null;
+};
+
+type InsumoRow = {
+  id: string;
+  nome: string | null;
+  categoria: string | null;
+  quantidade: number | null;
+  unidade: string | null;
+  estoque_minimo: number | null;
+  fornecedor: string | null;
+  validade: string | null;
+  custo: number | null;
+};
+
+type LoteRow = {
+  id: string;
+  nome: string | null;
+  descricao: string | null;
+  pasto: string | null;
+};
+
+type ReproducaoRow = {
+  id: string;
+  brinco: string | null;
+  status: string | null;
+  data_cobertura: string | null;
+  data_previsto_parto: string | null;
+  pai: string | null;
+  observacao: string | null;
+};
+
+type PastoRow = {
+  id: string;
+  nome: string | null;
+  area_hectares: number | null;
+  capacidade_animais: number | null;
+  observacao: string | null;
 };
 
 // ── mappers (DB snake_case → app camelCase) ─────────────────────────
