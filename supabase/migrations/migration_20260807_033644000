@@ -1,0 +1,176 @@
+-- ════════════════════════════════════════════════════════════════════
+-- BoviGest PRO — schema: pesagens, vacinacoes, nascimentos, leite,
+-- insumos, lotes, reproducao, pastos
+-- Mesmo padrão de RLS por farm_id + Realtime já usado em
+-- animais/financeiro/confinamento.
+-- ════════════════════════════════════════════════════════════════════
+
+-- ── pesagens ─────────────────────────────────────────────────────────
+create table if not exists public.pesagens (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  brinco text not null default '',
+  peso_atual numeric not null default 0,
+  peso_anterior numeric,
+  data_anterior text,
+  data text,
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.pesagens enable row level security;
+
+create policy "pesagens select" on public.pesagens for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "pesagens insert" on public.pesagens for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "pesagens update" on public.pesagens for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "pesagens delete" on public.pesagens for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── vacinacoes ───────────────────────────────────────────────────────
+create table if not exists public.vacinacoes (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  vacina text not null default '',
+  lote text not null default '',
+  brincos text[] not null default '{}',
+  data_aplicacao text,
+  data_liberacao text,
+  veterinario text,
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.vacinacoes enable row level security;
+
+create policy "vacinacoes select" on public.vacinacoes for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "vacinacoes insert" on public.vacinacoes for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "vacinacoes update" on public.vacinacoes for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "vacinacoes delete" on public.vacinacoes for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── nascimentos ───────────────────────────────────────────────────────
+create table if not exists public.nascimentos (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  brinco_bezerro text not null default '',
+  brinco_matriz text not null default '',
+  brinco_pai text,
+  data text,
+  peso numeric,
+  sexo text not null default 'M' check (sexo in ('M','F')),
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.nascimentos enable row level security;
+
+create policy "nascimentos select" on public.nascimentos for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "nascimentos insert" on public.nascimentos for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "nascimentos update" on public.nascimentos for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "nascimentos delete" on public.nascimentos for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── leite ────────────────────────────────────────────────────────────
+create table if not exists public.leite (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  data text,
+  quantidade numeric not null default 0,
+  turno text not null default 'Manhã' check (turno in ('Manhã','Tarde','Noite')),
+  responsavel text,
+  created_at timestamptz not null default now()
+);
+alter table public.leite enable row level security;
+
+create policy "leite select" on public.leite for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "leite insert" on public.leite for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "leite update" on public.leite for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "leite delete" on public.leite for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── insumos ──────────────────────────────────────────────────────────
+create table if not exists public.insumos (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  nome text not null default '',
+  categoria text not null default '',
+  quantidade numeric not null default 0,
+  unidade text not null default '',
+  estoque_minimo numeric not null default 0,
+  fornecedor text,
+  validade text,
+  custo numeric,
+  created_at timestamptz not null default now()
+);
+alter table public.insumos enable row level security;
+
+create policy "insumos select" on public.insumos for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "insumos insert" on public.insumos for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "insumos update" on public.insumos for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "insumos delete" on public.insumos for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── lotes (sem quantidade_animais — calculado no front) ─────────────
+create table if not exists public.lotes (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  nome text not null default '',
+  descricao text,
+  pasto text,
+  created_at timestamptz not null default now()
+);
+alter table public.lotes enable row level security;
+
+create policy "lotes select" on public.lotes for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "lotes insert" on public.lotes for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "lotes update" on public.lotes for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "lotes delete" on public.lotes for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── reproducao ────────────────────────────────────────────────────────
+create table if not exists public.reproducao (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  brinco text not null default '',
+  status text not null default 'Vazia' check (status in ('Prenhe','Vazia','Em cio','Gestação')),
+  data_cobertura text,
+  data_previsto_parto text,
+  pai text,
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.reproducao enable row level security;
+
+create policy "reproducao select" on public.reproducao for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "reproducao insert" on public.reproducao for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "reproducao update" on public.reproducao for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "reproducao delete" on public.reproducao for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── pastos (novo cadastro de apoio) ──────────────────────────────────
+create table if not exists public.pastos (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  nome text not null default '',
+  area_hectares numeric,
+  capacidade_animais numeric,
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.pastos enable row level security;
+
+create policy "pastos select" on public.pastos for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "pastos insert" on public.pastos for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "pastos update" on public.pastos for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "pastos delete" on public.pastos for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── Realtime nas 8 novas tabelas ──────────────────────────────────────
+do $$
+begin
+  begin alter publication supabase_realtime drop table public.pesagens; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.vacinacoes; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.nascimentos; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.leite; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.insumos; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.lotes; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.reproducao; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.pastos; exception when others then null; end;
+  alter publication supabase_realtime add table public.pesagens;
+  alter publication supabase_realtime add table public.vacinacoes;
+  alter publication supabase_realtime add table public.nascimentos;
+  alter publication supabase_realtime add table public.leite;
+  alter publication supabase_realtime add table public.insumos;
+  alter publication supabase_realtime add table public.lotes;
+  alter publication supabase_realtime add table public.reproducao;
+  alter publication supabase_realtime add table public.pastos;
+end $$;

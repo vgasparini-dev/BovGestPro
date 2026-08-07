@@ -32,7 +32,7 @@ export type Animal = {
 };
 
 export type Pesagem = {
-  id: number;
+  id: string;
   brinco: string;
   pesoAtual: number;
   pesoAnterior?: number;
@@ -42,7 +42,7 @@ export type Pesagem = {
 };
 
 export type Vacinacao = {
-  id: number;
+  id: string;
   vacina: string;
   lote: string;
   brincos: string[];
@@ -53,7 +53,7 @@ export type Vacinacao = {
 };
 
 export type Nascimento = {
-  id: number;
+  id: string;
   brincoBezerro: string;
   brincoMatriz: string;
   brincoPai?: string;
@@ -64,7 +64,7 @@ export type Nascimento = {
 };
 
 export type RegistroLeite = {
-  id: number;
+  id: string;
   data: string;
   quantidade: number;
   turno: 'Manhã' | 'Tarde' | 'Noite';
@@ -82,7 +82,7 @@ export type Financeiro = {
 };
 
 export type Insumo = {
-  id: number;
+  id: string;
   nome: string;
   categoria: string;
   quantidade: number;
@@ -94,10 +94,9 @@ export type Insumo = {
 };
 
 export type Lote = {
-  id: number;
+  id: string;
   nome: string;
   descricao?: string;
-  quantidadeAnimais: number;
   pasto?: string;
 };
 
@@ -111,12 +110,20 @@ export type CalendarioEvento = {
 };
 
 export type Reproducao = {
-  id: number;
+  id: string;
   brinco: string;
   status: 'Prenhe' | 'Vazia' | 'Em cio' | 'Gestação';
   dataCobertura?: string;
   dataPrevistoParto?: string;
   pai?: string;
+  observacao?: string;
+};
+
+export type Pasto = {
+  id: string;
+  nome: string;
+  areaHectares?: number;
+  capacidadeAnimais?: number;
   observacao?: string;
 };
 
@@ -145,6 +152,7 @@ export type AppData = {
   financeiro: Financeiro[];
   insumos: Insumo[];
   lotes: Lote[];
+  pastos: Pasto[];
   calendario: CalendarioEvento[];
   reproducao: Reproducao[];
   confinamento: Confinamento[];

@@ -3489,6 +3489,210 @@ export type Database = {
         }
         Relationships: []
       }
+      insumos: {
+        Row: {
+          categoria: string
+          created_at: string
+          custo: number | null
+          estoque_minimo: number
+          farm_id: string
+          fornecedor: string | null
+          id: string
+          nome: string
+          quantidade: number
+          unidade: string
+          validade: string | null
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          custo?: number | null
+          estoque_minimo?: number
+          farm_id?: string
+          fornecedor?: string | null
+          id?: string
+          nome?: string
+          quantidade?: number
+          unidade?: string
+          validade?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          custo?: number | null
+          estoque_minimo?: number
+          farm_id?: string
+          fornecedor?: string | null
+          id?: string
+          nome?: string
+          quantidade?: number
+          unidade?: string
+          validade?: string | null
+        }
+        Relationships: []
+      }
+      leite: {
+        Row: {
+          created_at: string
+          data: string | null
+          farm_id: string
+          id: string
+          quantidade: number
+          responsavel: string | null
+          turno: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string | null
+          farm_id?: string
+          id?: string
+          quantidade?: number
+          responsavel?: string | null
+          turno?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string | null
+          farm_id?: string
+          id?: string
+          quantidade?: number
+          responsavel?: string | null
+          turno?: string
+        }
+        Relationships: []
+      }
+      lotes: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          farm_id: string
+          id: string
+          nome: string
+          pasto: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          farm_id?: string
+          id?: string
+          nome?: string
+          pasto?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          farm_id?: string
+          id?: string
+          nome?: string
+          pasto?: string | null
+        }
+        Relationships: []
+      }
+      nascimentos: {
+        Row: {
+          brinco_bezerro: string
+          brinco_matriz: string
+          brinco_pai: string | null
+          created_at: string
+          data: string | null
+          farm_id: string
+          id: string
+          observacao: string | null
+          peso: number | null
+          sexo: string
+        }
+        Insert: {
+          brinco_bezerro?: string
+          brinco_matriz?: string
+          brinco_pai?: string | null
+          created_at?: string
+          data?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso?: number | null
+          sexo?: string
+        }
+        Update: {
+          brinco_bezerro?: string
+          brinco_matriz?: string
+          brinco_pai?: string | null
+          created_at?: string
+          data?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso?: number | null
+          sexo?: string
+        }
+        Relationships: []
+      }
+      pastos: {
+        Row: {
+          area_hectares: number | null
+          capacidade_animais: number | null
+          created_at: string
+          farm_id: string
+          id: string
+          nome: string
+          observacao: string | null
+        }
+        Insert: {
+          area_hectares?: number | null
+          capacidade_animais?: number | null
+          created_at?: string
+          farm_id?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+        }
+        Update: {
+          area_hectares?: number | null
+          capacidade_animais?: number | null
+          created_at?: string
+          farm_id?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+        }
+        Relationships: []
+      }
+      pesagens: {
+        Row: {
+          brinco: string
+          created_at: string
+          data: string | null
+          data_anterior: string | null
+          farm_id: string
+          id: string
+          observacao: string | null
+          peso_anterior: number | null
+          peso_atual: number
+        }
+        Insert: {
+          brinco?: string
+          created_at?: string
+          data?: string | null
+          data_anterior?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso_anterior?: number | null
+          peso_atual?: number
+        }
+        Update: {
+          brinco?: string
+          created_at?: string
+          data?: string | null
+          data_anterior?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso_anterior?: number | null
+          peso_atual?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           criado_em: string
@@ -3519,6 +3723,81 @@ export type Database = {
           role?: string
           status?: string
           ultimo_acesso?: string | null
+        }
+        Relationships: []
+      }
+      reproducao: {
+        Row: {
+          brinco: string
+          created_at: string
+          data_cobertura: string | null
+          data_previsto_parto: string | null
+          farm_id: string
+          id: string
+          observacao: string | null
+          pai: string | null
+          status: string
+        }
+        Insert: {
+          brinco?: string
+          created_at?: string
+          data_cobertura?: string | null
+          data_previsto_parto?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          pai?: string | null
+          status?: string
+        }
+        Update: {
+          brinco?: string
+          created_at?: string
+          data_cobertura?: string | null
+          data_previsto_parto?: string | null
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          pai?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      vacinacoes: {
+        Row: {
+          brincos: string[]
+          created_at: string
+          data_aplicacao: string | null
+          data_liberacao: string | null
+          farm_id: string
+          id: string
+          lote: string
+          observacao: string | null
+          vacina: string
+          veterinario: string | null
+        }
+        Insert: {
+          brincos?: string[]
+          created_at?: string
+          data_aplicacao?: string | null
+          data_liberacao?: string | null
+          farm_id?: string
+          id?: string
+          lote?: string
+          observacao?: string | null
+          vacina?: string
+          veterinario?: string | null
+        }
+        Update: {
+          brincos?: string[]
+          created_at?: string
+          data_aplicacao?: string | null
+          data_liberacao?: string | null
+          farm_id?: string
+          id?: string
+          lote?: string
+          observacao?: string | null
+          vacina?: string
+          veterinario?: string | null
         }
         Relationships: []
       }
@@ -3748,6 +4027,39 @@ export type Database = {
         Relationships: []
       }
       messages_2026_08_09: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2026_08_10: {
         Row: {
           event: string | null
           extension: string
