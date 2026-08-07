@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Beef, X, AlertTriangle } from 'lucide-react';
 import type { Animal } from '../types';
 
-type Props = { animals: Animal[]; onSave: (a: Animal, isNew: boolean) => void; onDelete: (id: number) => void; };
+type Props = { animals: Animal[]; onSave: (a: Animal, isNew: boolean) => void; onDelete: (id: string) => void; };
 
 const RACAS = ['Nelore', 'Angus', 'Girolando', 'Brahman', 'Guzera', 'Tabapuã', 'Simental', 'Hereford', 'Mestiço', 'Outro'];
 
@@ -107,7 +107,7 @@ export default function AnimaisView({ animals, onSave, onDelete }: Props) {
 
   const handleSave = (form: Partial<Animal>) => {
     const isNew = modalMode === 'create';
-    const a: Animal = { id: editing?.id ?? Date.now(), brinco: form.brinco!, raca: form.raca!, sexo: form.sexo as 'M' | 'F', dataNasc: form.dataNasc || '', peso: form.peso || 0, lote: form.lote || '', status: (form.status as Animal['status']) || 'Ativo', nome: form.nome };
+    const a: Animal = { id: editing?.id ?? crypto.randomUUID(), brinco: form.brinco!, raca: form.raca!, sexo: form.sexo as 'M' | 'F', dataNasc: form.dataNasc || '', peso: form.peso || 0, lote: form.lote || '', status: (form.status as Animal['status']) || 'Ativo', nome: form.nome };
     onSave(a, isNew);
     setModalMode(null); setEditing(null);
   };

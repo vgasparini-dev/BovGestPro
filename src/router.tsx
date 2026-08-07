@@ -1,23 +1,18 @@
 import BoviGest from "./pages/BoviGest";
 import Login from "./pages/Login";
-import FirebaseSetup from "./pages/FirebaseSetup";
+import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 export const routers = [
   {
     path: "/",
     name: "app",
-    element: <BoviGest />,
+    element: <ProtectedRoute><BoviGest /></ProtectedRoute>,
   },
   {
     path: "/login",
     name: "login",
     element: <Login />,
-  },
-  {
-    path: "/firebase-setup",
-    name: "firebase-setup",
-    element: <FirebaseSetup />,
   },
   /* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */
   {

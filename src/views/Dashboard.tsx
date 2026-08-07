@@ -103,12 +103,10 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border
           ${cloud === 'online' ? 'bg-green-50 text-green-700 border-green-200'
           : cloud === 'error' ? 'bg-red-50 text-red-700 border-red-200'
-          : cloud === 'connecting' ? 'bg-muted text-muted-foreground border-border'
-          : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-          {cloud === 'online' ? <><Cloud size={12} /> Firebase online</>
+          : 'bg-muted text-muted-foreground border-border'}`}>
+          {cloud === 'online' ? <><Cloud size={12} /> Nuvem online</>
           : cloud === 'error' ? <><CloudOff size={12} /> Sem ligação</>
-          : cloud === 'connecting' ? <><Loader2 size={12} className="animate-spin" /> Conectando...</>
-          : <><CloudOff size={12} /> Modo Demo</>}
+          : <><Loader2 size={12} className="animate-spin" /> Conectando...</>}
         </div>
       </div>
 
@@ -269,28 +267,24 @@ export default function Dashboard({ data, cloud, adminName, onNavigateIndices }:
           <div className={`rounded-2xl border p-4 shadow-sm transition-colors
             ${cloud === 'online' ? 'bg-green-50 border-green-200'
             : cloud === 'error' ? 'bg-red-50 border-red-200'
-            : cloud === 'connecting' ? 'bg-muted border-border'
-            : 'bg-amber-50 border-amber-200'}`}>
+            : 'bg-muted border-border'}`}>
             <div className="flex items-center gap-3">
               {cloud === 'online' ? <Cloud size={18} className="text-green-700 shrink-0" />
               : cloud === 'error' ? <CloudOff size={18} className="text-red-600 shrink-0" />
-              : cloud === 'connecting' ? <Loader2 size={18} className="text-muted-foreground animate-spin shrink-0" />
-              : <CloudOff size={18} className="text-amber-600 shrink-0" />}
+              : <Loader2 size={18} className="text-muted-foreground animate-spin shrink-0" />}
               <div className="flex-1 min-w-0">
                 <p className="font-black text-xs text-foreground">
-                  {cloud === 'online' ? 'Firebase Sincronizado'
+                  {cloud === 'online' ? 'Nuvem Sincronizada'
                   : cloud === 'error' ? 'Sem Sincronização'
-                  : cloud === 'connecting' ? 'Conectando...'
-                  : 'Modo Demo'}
+                  : 'Conectando...'}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
                   {cloud === 'online' ? 'Dados em tempo real'
                   : cloud === 'error' ? 'Verifique a internet'
-                  : cloud === 'connecting' ? 'Aguarde...'
-                  : 'Firebase não configurado'}
+                  : 'Aguarde...'}
                 </p>
               </div>
-              <div className={`w-2 h-2 rounded-full shrink-0 ${cloud === 'online' ? 'bg-green-500 animate-pulse' : cloud === 'error' ? 'bg-red-500' : cloud === 'connecting' ? 'bg-muted-foreground' : 'bg-amber-500'}`} />
+              <div className={`w-2 h-2 rounded-full shrink-0 ${cloud === 'online' ? 'bg-green-500 animate-pulse' : cloud === 'error' ? 'bg-red-500' : 'bg-muted-foreground'}`} />
             </div>
           </div>
 

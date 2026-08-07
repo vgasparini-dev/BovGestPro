@@ -1,0 +1,163 @@
+-- ════════════════════════════════════════════════════════════════════
+-- BoviGest PRO — schema: profiles + animais/financeiro/confinamento
+-- Drops conflicting template leftovers, then builds the real schema.
+-- Order matters: tables that functions reference must exist first.
+-- ════════════════════════════════════════════════════════════════════
+
+-- Remove leftover template artifacts that conflict with BoviGest
+drop trigger if exists on_auth_user_created on auth.users;
+drop table if exists public.profiles cascade;
+drop function if exists public.get_my_farm_id() cascade;
+drop function if exists public.is_admin() cascade;
+drop function if exists public.handle_new_user() cascade;
+
+-- ── profiles (created BEFORE the helper functions that query it) ────
+create table public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  farm_id uuid not null,
+  nome text not null default '',
+  email text not null default '',
+  role text not null default 'Admin' check (role in ('Admin','Operador','Veterinario')),
+  status text not null default 'Ativo' check (status in ('Ativo','Inativo')),
+  criado_em timestamptz not null default now(),
+  ultimo_acesso timestamptz
+);
+alter table public.profiles enable row level security;
+
+-- ── Helper functions (SECURITY DEFINER → no RLS recursion) ──────────
+create or replace function public.get_my_farm_id()
+returns uuid
+language sql
+security definer
+set search_path = public
+as $$
+  select farm_id from public.profiles where id = auth.uid();
+$$;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'Admin'
+  );
+$$;
+
+-- ── profiles RLS policies ───────────────────────────────────────────
+create policy "profiles select" on public.profiles
+  for select to authenticated
+  using (farm_id = public.get_my_farm_id());
+
+create policy "profiles update" on public.profiles
+  for update to authenticated
+  using (id = auth.uid() or (public.is_admin() and farm_id = public.get_my_farm_id()))
+  with check (id = auth.uid() or (public.is_admin() and farm_id = public.get_my_farm_id()));
+
+create policy "profiles delete" on public.profiles
+  for delete to authenticated
+  using (public.is_admin() and farm_id = public.get_my_farm_id() and id <> auth.uid());
+
+-- ── Trigger: auto-create profile on signup ──────────────────────────
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, farm_id, nome, email, role, status)
+  values (
+    new.id,
+    coalesce(nullif(new.raw_user_meta_data->>'farm_id', '')::uuid, new.id),
+    coalesce(new.raw_user_meta_data->>'nome', split_part(new.email, '@', 1)),
+    new.email,
+    coalesce(new.raw_user_meta_data->>'role', 'Admin'),
+    'Ativo'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ── animais ─────────────────────────────────────────────────────────
+create table public.animais (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  brinco text not null default '',
+  nome text,
+  raca text not null default '',
+  sexo text not null default 'M' check (sexo in ('M','F')),
+  data_nasc text,
+  peso numeric not null default 0,
+  lote text not null default '',
+  status text not null default 'Ativo' check (status in ('Ativo','Vendido','Morto')),
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.animais enable row level security;
+
+create policy "animais select" on public.animais for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "animais insert" on public.animais for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "animais update" on public.animais for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "animais delete" on public.animais for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── financeiro ──────────────────────────────────────────────────────
+create table public.financeiro (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  tipo text not null default 'despesa' check (tipo in ('receita','despesa')),
+  categoria text not null default '',
+  descricao text not null default '',
+  valor numeric not null default 0,
+  data text,
+  status text not null default 'pendente' check (status in ('pago','pendente')),
+  created_at timestamptz not null default now()
+);
+alter table public.financeiro enable row level security;
+
+create policy "financeiro select" on public.financeiro for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "financeiro insert" on public.financeiro for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "financeiro update" on public.financeiro for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "financeiro delete" on public.financeiro for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── confinamento ────────────────────────────────────────────────────
+create table public.confinamento (
+  id uuid primary key default gen_random_uuid(),
+  farm_id uuid not null default public.get_my_farm_id(),
+  brinco text not null default '',
+  curral text not null default '',
+  data_entrada text,
+  peso_entrada numeric not null default 0,
+  peso_atual numeric not null default 0,
+  data_ultima_pesagem text,
+  dieta text not null default '',
+  custo_diario numeric not null default 0,
+  previsao_saida text,
+  status text not null default 'Em confinamento' check (status in ('Em confinamento','Finalizado','Vendido')),
+  observacao text,
+  created_at timestamptz not null default now()
+);
+alter table public.confinamento enable row level security;
+
+create policy "confinamento select" on public.confinamento for select to authenticated using (farm_id = public.get_my_farm_id());
+create policy "confinamento insert" on public.confinamento for insert to authenticated with check (farm_id = public.get_my_farm_id());
+create policy "confinamento update" on public.confinamento for update to authenticated using (farm_id = public.get_my_farm_id()) with check (farm_id = public.get_my_farm_id());
+create policy "confinamento delete" on public.confinamento for delete to authenticated using (farm_id = public.get_my_farm_id());
+
+-- ── Realtime on the 3 business tables ───────────────────────────────
+do $$
+begin
+  begin alter publication supabase_realtime drop table public.animais; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.financeiro; exception when others then null; end;
+  begin alter publication supabase_realtime drop table public.confinamento; exception when others then null; end;
+  alter publication supabase_realtime add table public.animais;
+  alter publication supabase_realtime add table public.financeiro;
+  alter publication supabase_realtime add table public.confinamento;
+end $$;

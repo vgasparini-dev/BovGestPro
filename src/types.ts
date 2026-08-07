@@ -4,10 +4,10 @@
 
 export type UserRole = 'Admin' | 'Operador' | 'Veterinario';
 export type UserStatus = 'Ativo' | 'Inativo';
-export type CloudStatus = 'online' | 'offline' | 'error' | 'connecting';
+export type CloudStatus = 'connecting' | 'online' | 'error';
 
 export type AppUser = {
-  id: number;
+  id: string;
   nome: string;
   email: string;
   senha: string;
@@ -19,7 +19,7 @@ export type AppUser = {
 };
 
 export type Animal = {
-  id: number;
+  id: string;
   brinco: string;
   nome?: string;
   raca: string;
@@ -72,7 +72,7 @@ export type RegistroLeite = {
 };
 
 export type Financeiro = {
-  id: number;
+  id: string;
   tipo: 'receita' | 'despesa';
   categoria: string;
   descricao: string;
@@ -121,7 +121,7 @@ export type Reproducao = {
 };
 
 export type Confinamento = {
-  id: number;
+  id: string;
   brinco: string;
   curral: string;
   dataEntrada: string;

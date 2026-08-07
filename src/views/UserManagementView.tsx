@@ -9,7 +9,7 @@ import type { AppUser, UserRole, UserStatus } from '../types';
 type Props = {
   users: AppUser[];
   onSave: (u: AppUser, isNew: boolean) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   adminEmail: string;
 };
 
@@ -50,7 +50,7 @@ function UserAvatar({ nome, size = 'md' }: { nome: string; size?: 'sm' | 'md' })
   );
 }
 
-type FormData = Omit<AppUser, 'id'> & { id?: number };
+type FormData = Omit<AppUser, 'id'> & { id?: string };
 
 function UserModal({ mode, initial, onClose, onSave, adminEmail }: {
   mode: 'create' | 'edit'; initial: FormData; onClose: () => void;
@@ -187,7 +187,7 @@ export default function UserManagementView({ users, onSave, onDelete, adminEmail
   const handleSave = (form: FormData) => {
     const isNew = modalMode === 'create';
     const user: AppUser = {
-      id: form.id ?? Date.now(),
+      id: form.id ?? crypto.randomUUID(),
       nome: form.nome,
       email: form.email,
       senha: form.senha || editing?.senha || '',

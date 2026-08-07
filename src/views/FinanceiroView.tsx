@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DollarSign, Plus, TrendingUp, TrendingDown, Search, X, Trash2 } from 'lucide-react';
 import type { Financeiro } from '../types';
 
-type Props = { financeiro: Financeiro[]; onSave: (f: Financeiro, isNew: boolean) => void; onDelete: (id: number) => void; };
+type Props = { financeiro: Financeiro[]; onSave: (f: Financeiro, isNew: boolean) => void; onDelete: (id: string) => void; };
 
 const CATS_RECEITA = ['Venda de Animais', 'Venda de Leite', 'Arrendamento', 'Subsídio', 'Outro'];
 const CATS_DESPESA = ['Alimentação', 'Veterinário', 'Medicamentos', 'Manutenção', 'Combustível', 'Mão de Obra', 'Impostos', 'Outro'];
@@ -92,7 +92,7 @@ export default function FinanceiroView({ financeiro, onSave, onDelete }: Props) 
   const saldo = totalReceitas - totalDespesas;
 
   const handleSave = (form: Partial<Financeiro>) => {
-    const f: Financeiro = { id: Date.now(), tipo: form.tipo as 'receita' | 'despesa', categoria: form.categoria!, descricao: form.descricao!, valor: Number(form.valor), data: form.data!, status: (form.status as 'pago' | 'pendente') || 'pago' };
+    const f: Financeiro = { id: crypto.randomUUID(), tipo: form.tipo as 'receita' | 'despesa', categoria: form.categoria!, descricao: form.descricao!, valor: Number(form.valor), data: form.data!, status: (form.status as 'pago' | 'pendente') || 'pago' };
     onSave(f, true);
     setModalOpen(false);
   };

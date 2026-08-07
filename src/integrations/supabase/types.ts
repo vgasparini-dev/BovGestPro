@@ -3109,6 +3109,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      animais: {
+        Row: {
+          brinco: string
+          created_at: string
+          data_nasc: string | null
+          farm_id: string
+          id: string
+          lote: string
+          nome: string | null
+          observacao: string | null
+          peso: number
+          raca: string
+          sexo: string
+          status: string
+        }
+        Insert: {
+          brinco?: string
+          created_at?: string
+          data_nasc?: string | null
+          farm_id?: string
+          id?: string
+          lote?: string
+          nome?: string | null
+          observacao?: string | null
+          peso?: number
+          raca?: string
+          sexo?: string
+          status?: string
+        }
+        Update: {
+          brinco?: string
+          created_at?: string
+          data_nasc?: string | null
+          farm_id?: string
+          id?: string
+          lote?: string
+          nome?: string | null
+          observacao?: string | null
+          peso?: number
+          raca?: string
+          sexo?: string
+          status?: string
+        }
+        Relationships: []
+      }
       coletas: {
         Row: {
           created_at: string
@@ -3187,6 +3232,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      confinamento: {
+        Row: {
+          brinco: string
+          created_at: string
+          curral: string
+          custo_diario: number
+          data_entrada: string | null
+          data_ultima_pesagem: string | null
+          dieta: string
+          farm_id: string
+          id: string
+          observacao: string | null
+          peso_atual: number
+          peso_entrada: number
+          previsao_saida: string | null
+          status: string
+        }
+        Insert: {
+          brinco?: string
+          created_at?: string
+          curral?: string
+          custo_diario?: number
+          data_entrada?: string | null
+          data_ultima_pesagem?: string | null
+          dieta?: string
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso_atual?: number
+          peso_entrada?: number
+          previsao_saida?: string | null
+          status?: string
+        }
+        Update: {
+          brinco?: string
+          created_at?: string
+          curral?: string
+          custo_diario?: number
+          data_entrada?: string | null
+          data_ultima_pesagem?: string | null
+          dieta?: string
+          farm_id?: string
+          id?: string
+          observacao?: string | null
+          peso_atual?: number
+          peso_entrada?: number
+          previsao_saida?: string | null
+          status?: string
+        }
+        Relationships: []
       }
       despesas: {
         Row: {
@@ -3312,6 +3408,42 @@ export type Database = {
           },
         ]
       }
+      financeiro: {
+        Row: {
+          categoria: string
+          created_at: string
+          data: string | null
+          descricao: string
+          farm_id: string
+          id: string
+          status: string
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          data?: string | null
+          descricao?: string
+          farm_id?: string
+          id?: string
+          status?: string
+          tipo?: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          data?: string | null
+          descricao?: string
+          farm_id?: string
+          id?: string
+          status?: string
+          tipo?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       galpoes: {
         Row: {
           area_util: number | null
@@ -3359,28 +3491,34 @@ export type Database = {
       }
       profiles: {
         Row: {
-          ativo: boolean
-          cargo: string | null
-          created_at: string
+          criado_em: string
+          email: string
+          farm_id: string
           id: string
-          nivel_acesso: Database["public"]["Enums"]["nivel_acesso"]
           nome: string
+          role: string
+          status: string
+          ultimo_acesso: string | null
         }
         Insert: {
-          ativo?: boolean
-          cargo?: string | null
-          created_at?: string
+          criado_em?: string
+          email?: string
+          farm_id: string
           id: string
-          nivel_acesso?: Database["public"]["Enums"]["nivel_acesso"]
-          nome: string
+          nome?: string
+          role?: string
+          status?: string
+          ultimo_acesso?: string | null
         }
         Update: {
-          ativo?: boolean
-          cargo?: string | null
-          created_at?: string
+          criado_em?: string
+          email?: string
+          farm_id?: string
           id?: string
-          nivel_acesso?: Database["public"]["Enums"]["nivel_acesso"]
           nome?: string
+          role?: string
+          status?: string
+          ultimo_acesso?: string | null
         }
         Relationships: []
       }
@@ -3422,7 +3560,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_farm_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       categoria_despesa: "RACAO" | "MAO_OBRA" | "ENERGIA" | "OUTRO"

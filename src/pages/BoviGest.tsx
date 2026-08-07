@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   HeartPulse, Leaf, Syringe, Scale, Baby,
   Droplets, Package, Grid3X3, Settings, Bell,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import Sidebar, { type ViewKey } from '../components/Sidebar';
 import { MobileMenuButton } from '../components/Sidebar';
 import Dashboard from '../views/Dashboard';
@@ -15,139 +15,229 @@ import IndicesZootecnicosView from '../views/IndicesZootecnicosView';
 import ComingSoon from '../views/ComingSoon';
 import { demoData } from '../data/demo';
 import type { AppData, CloudStatus, Animal, Financeiro, AppUser, Confinamento } from '../types';
+import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '../hooks/useAuth';
 import {
-  getSavedConfig, initFirebase, ADMIN_EMAIL_KEY,
-} from '../services/firebase';
-import { getUsers, saveUser, deleteUser as deleteUserService } from '../services/userService';
-import { getSession, clearSession } from '../services/session';
-import { signInAnonymously } from 'firebase/auth';
-import type { Firestore } from 'firebase/firestore';
+  fetchAnimais, upsertAnimal, deleteAnimal,
+  fetchFinanceiro, upsertFinanceiro, deleteFinanceiro,
+  fetchConfinamento, upsertConfinamento, deleteConfinamento,
+  fetchProfiles,
+} from '../services/dataService';
 
 const SIDEBAR_COLLAPSED_KEY = 'bovigest_sidebar_collapsed';
 
 export default function BoviGest() {
-  const navigate = useNavigate();
+  const { profile, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<ViewKey>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [data, setData] = useState<AppData>(demoData);
   const [cloud, setCloud] = useState<CloudStatus>('connecting');
-  const [adminEmail, setAdminEmail] = useState(() => getSession()?.email || '');
-  const [adminName, setAdminName] = useState(() => getSession()?.nome || '');
-  const [dbInstance, setDbInstance] = useState<Firestore | null>(null);
 
-  // ── Guarda de sessão: sem login, volta para /login ──────────────────────────
+  // ── Load persisted data + subscribe to Realtime ──────────────────────
   useEffect(() => {
-    if (!getSession()) navigate('/login');
-  }, [navigate]);
+    let active = true;
+    setCloud('connecting');
 
-  // ── Connect Firebase if configured ────────────────────────────────────────
-  useEffect(() => {
-    const config = getSavedConfig();
-    const email = localStorage.getItem(ADMIN_EMAIL_KEY);
-    if (!config || !email) {
-      setCloud('offline');
-      return;
-    }
-    setAdminEmail(prev => prev || email);
-    try {
-      const { auth, db } = initFirebase(config);
-      signInAnonymously(auth)
-        .then(async () => {
-          setDbInstance(db);
-          setCloud('online');
-          const users = await getUsers(db, email);
-          if (users.length > 0) {
-            const session = getSession();
-            const me = users.find(u => u.email === (session?.email || email));
-            if (me) setAdminName(me.nome);
-            setData(prev => ({ ...prev, usuarios: users }));
-          }
-        })
-        .catch(() => setCloud('error'));
-    } catch {
-      setCloud('error');
-    }
-  }, []);
-
-  // ── User CRUD ──────────────────────────────────────────────────────────────
-  const handleSaveUser = useCallback(async (user: AppUser, isNew: boolean) => {
-    setData(prev => ({
-      ...prev,
-      usuarios: isNew
-        ? [user, ...prev.usuarios]
-        : prev.usuarios.map(u => u.id === user.id ? user : u),
-    }));
-    if (dbInstance && adminEmail) {
+    const loadAll = async () => {
       try {
-        await saveUser(dbInstance, adminEmail, user, isNew);
-      } catch (e) { console.error(e); }
+        const [animais, financeiro, confinamento, usuarios] = await Promise.all([
+          fetchAnimais(),
+          fetchFinanceiro(),
+          fetchConfinamento(),
+          fetchProfiles(),
+        ]);
+        if (!active) return;
+        setData((prev) => ({ ...prev, animais, financeiro, confinamento, usuarios }));
+        setCloud('online');
+      } catch (e) {
+        console.error(e);
+        if (active) setCloud('error');
+      }
+    };
+
+    const reloadTable = async (table: 'animais' | 'financeiro' | 'confinamento') => {
+      try {
+        if (table === 'animais') {
+          const r = await fetchAnimais();
+          if (active) setData((p) => ({ ...p, animais: r }));
+        } else if (table === 'financeiro') {
+          const r = await fetchFinanceiro();
+          if (active) setData((p) => ({ ...p, financeiro: r }));
+        } else {
+          const r = await fetchConfinamento();
+          if (active) setData((p) => ({ ...p, confinamento: r }));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadAll();
+
+    const channel = supabase
+      .channel('bovigest-business')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'animais' }, () => reloadTable('animais'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'financeiro' }, () => reloadTable('financeiro'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'confinamento' }, () => reloadTable('confinamento'))
+      .subscribe();
+
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // ── Update last access on mount (best-effort) ───────────────────────
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase
+      .from('profiles')
+      .update({ ultimo_acesso: new Date().toISOString() })
+      .eq('id', profile.id)
+      .then(({ error }) => { if (error) console.error(error); });
+  }, [profile?.id]);
+
+  // ── User CRUD (via backend function) ─────────────────────────────────
+  const handleSaveUser = useCallback(async (user: AppUser, isNew: boolean) => {
+    try {
+      const { error } = await supabase.functions.invoke('manage-team-user', {
+        body: {
+          action: isNew ? 'create' : 'update',
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          senha: user.senha,
+          role: user.role,
+          status: user.status,
+        },
+      });
+      if (error) throw error;
+      const usuarios = await fetchProfiles();
+      setData((prev) => ({ ...prev, usuarios }));
+      toast.success(isNew ? 'Usuário criado.' : 'Usuário atualizado.');
+    } catch (e) {
+      console.error(e);
+      toast.error('Não foi possível salvar o usuário.');
     }
-  }, [dbInstance, adminEmail]);
+  }, []);
 
-  const handleDeleteUser = useCallback(async (id: number) => {
-    setData(prev => ({ ...prev, usuarios: prev.usuarios.filter(u => u.id !== id) }));
-    if (dbInstance && adminEmail) {
-      try { await deleteUserService(dbInstance, adminEmail, id); } catch (e) { console.error(e); }
+  const handleDeleteUser = useCallback(async (id: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('manage-team-user', {
+        body: { action: 'delete', id },
+      });
+      if (error) throw error;
+      const usuarios = await fetchProfiles();
+      setData((prev) => ({ ...prev, usuarios }));
+      toast.success('Usuário removido.');
+    } catch (e) {
+      console.error(e);
+      toast.error('Não foi possível remover o usuário.');
     }
-  }, [dbInstance, adminEmail]);
+  }, []);
 
-  // ── Animal CRUD ────────────────────────────────────────────────────────────
-  const handleSaveAnimal = useCallback((animal: Animal, isNew: boolean) => {
-    setData(prev => ({
+  // ── Animal CRUD ──────────────────────────────────────────────────────
+  const handleSaveAnimal = useCallback(async (animal: Animal, isNew: boolean) => {
+    setData((prev) => ({
       ...prev,
-      animais: isNew
-        ? [animal, ...prev.animais]
-        : prev.animais.map(a => a.id === animal.id ? animal : a),
+      animais: isNew ? [animal, ...prev.animais] : prev.animais.map((a) => (a.id === animal.id ? animal : a)),
     }));
+    try {
+      await upsertAnimal(animal);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar o animal.');
+      const animais = await fetchAnimais();
+      setData((prev) => ({ ...prev, animais }));
+    }
   }, []);
 
-  const handleDeleteAnimal = useCallback((id: number) => {
-    setData(prev => ({ ...prev, animais: prev.animais.filter(a => a.id !== id) }));
+  const handleDeleteAnimal = useCallback(async (id: string) => {
+    setData((prev) => ({ ...prev, animais: prev.animais.filter((a) => a.id !== id) }));
+    try {
+      await deleteAnimal(id);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao remover o animal.');
+      const animais = await fetchAnimais();
+      setData((prev) => ({ ...prev, animais }));
+    }
   }, []);
 
-  // ── Financial CRUD ─────────────────────────────────────────────────────────
-  const handleSaveFinanceiro = useCallback((f: Financeiro, isNew: boolean) => {
-    setData(prev => ({
+  // ── Financial CRUD ──────────────────────────────────────────────────
+  const handleSaveFinanceiro = useCallback(async (f: Financeiro, isNew: boolean) => {
+    setData((prev) => ({
       ...prev,
-      financeiro: isNew
-        ? [f, ...prev.financeiro]
-        : prev.financeiro.map(x => x.id === f.id ? f : x),
+      financeiro: isNew ? [f, ...prev.financeiro] : prev.financeiro.map((x) => (x.id === f.id ? f : x)),
     }));
+    try {
+      await upsertFinanceiro(f);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar o lançamento.');
+      const financeiro = await fetchFinanceiro();
+      setData((prev) => ({ ...prev, financeiro }));
+    }
   }, []);
 
-  const handleDeleteFinanceiro = useCallback((id: number) => {
-    setData(prev => ({ ...prev, financeiro: prev.financeiro.filter(f => f.id !== id) }));
+  const handleDeleteFinanceiro = useCallback(async (id: string) => {
+    setData((prev) => ({ ...prev, financeiro: prev.financeiro.filter((f) => f.id !== id) }));
+    try {
+      await deleteFinanceiro(id);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao remover o lançamento.');
+      const financeiro = await fetchFinanceiro();
+      setData((prev) => ({ ...prev, financeiro }));
+    }
   }, []);
 
-  // ── Confinamento CRUD ──────────────────────────────────────────────────────
-  const handleSaveConfinamento = useCallback((c: Confinamento, isNew: boolean) => {
-    setData(prev => ({
+  // ── Confinamento CRUD ────────────────────────────────────────────────
+  const handleSaveConfinamento = useCallback(async (c: Confinamento, isNew: boolean) => {
+    setData((prev) => ({
       ...prev,
-      confinamento: isNew
-        ? [c, ...prev.confinamento]
-        : prev.confinamento.map(x => x.id === c.id ? c : x),
+      confinamento: isNew ? [c, ...prev.confinamento] : prev.confinamento.map((x) => (x.id === c.id ? c : x)),
     }));
+    try {
+      await upsertConfinamento(c);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao salvar o confinamento.');
+      const confinamento = await fetchConfinamento();
+      setData((prev) => ({ ...prev, confinamento }));
+    }
   }, []);
 
-  const handleDeleteConfinamento = useCallback((id: number) => {
-    setData(prev => ({ ...prev, confinamento: prev.confinamento.filter(c => c.id !== id) }));
+  const handleDeleteConfinamento = useCallback(async (id: string) => {
+    setData((prev) => ({ ...prev, confinamento: prev.confinamento.filter((c) => c.id !== id) }));
+    try {
+      await deleteConfinamento(id);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao remover o confinamento.');
+      const confinamento = await fetchConfinamento();
+      setData((prev) => ({ ...prev, confinamento }));
+    }
   }, []);
 
-  const handleLogout = () => {
-    clearSession();
-    navigate('/login');
+  const handleLogout = async () => {
+    await signOut();
+    // ProtectedRoute redirects to /login once the session clears.
   };
 
   const handleToggleSidebar = () => {
-    setSidebarCollapsed(prev => {
+    setSidebarCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0');
       return next;
     });
   };
 
-  // ── View renderer ──────────────────────────────────────────────────────────
+  const adminName = profile?.nome ?? '';
+  const adminEmail = profile?.email ?? '';
+
+  // ── View renderer ──────────────────────────────────────────────────
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
@@ -215,7 +305,7 @@ export default function BoviGest() {
               )}
             </button>
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center">
-              {adminName[0]}
+              {adminName[0] ?? 'A'}
             </div>
           </div>
         </header>

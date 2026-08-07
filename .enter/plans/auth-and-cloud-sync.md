@@ -108,28 +108,28 @@ responsabilidade (gestão de usuários da equipe pelo Admin):
   "Firebase"/"Modo Demo" e passam a refletir só os 3 estados de `CloudStatus`.
 
 ## Implementation checklist
-- [ ] Migração: criar `profiles` com trigger de auto-criação e RLS (select/update/delete) usando funções `get_my_farm_id()`/`is_admin()`.
-- [ ] Migração: criar `animais`, `financeiro`, `confinamento` com `farm_id default get_my_farm_id()` e RLS completa (select/insert/update/delete).
-- [ ] Migração: habilitar Realtime nas 3 tabelas de negócio.
-- [ ] Rodar `supabase_get_table_schema` e confirmar RLS + policies ativas nas 4 tabelas.
-- [ ] `supabase_configure_auth` com `auto_confirm_email: true`.
-- [ ] Criar e implantar `supabase/functions/manage-team-user/index.ts` (create/update/delete com verificação de Admin e farm).
-- [ ] Criar `src/hooks/useAuth.tsx` (AuthProvider + useAuth) seguindo o padrão de sessão do Enter Cloud.
-- [ ] Reescrever `src/pages/Login.tsx` com login + cadastro via Enter Cloud.
-- [ ] Criar `src/components/ProtectedRoute.tsx` e atualizar `src/router.tsx` (remover `/firebase-setup`).
-- [ ] Remover `FirebaseSetup.tsx`, `services/firebase.ts`, `services/userService.ts`, `services/session.ts` e a dependência `firebase`.
-- [ ] Criar `src/services/dataService.ts` com CRUD de `animais`/`financeiro`/`confinamento`.
-- [ ] Atualizar `src/pages/BoviGest.tsx`: `useAuth`, fetch inicial, assinatura Realtime, handlers assíncronos, chamada a `manage-team-user`.
-- [ ] Atualizar `src/types.ts` (`id: string` nas 4 entidades persistidas) e os 4 views afetados (`crypto.randomUUID()`).
-- [ ] Atualizar textos de status de nuvem em `Dashboard.tsx`.
+- [passed] Migração: criar `profiles` com trigger de auto-criação e RLS (select/update/delete) usando funções `get_my_farm_id()`/`is_admin()`.
+- [passed] Migração: criar `animais`, `financeiro`, `confinamento` com `farm_id default get_my_farm_id()` e RLS completa (select/insert/update/delete).
+- [passed] Migração: habilitar Realtime nas 3 tabelas de negócio.
+- [passed] Rodar `supabase_get_table_schema` e confirmar RLS + policies ativas nas 4 tabelas.
+- [passed] `supabase_configure_auth` com `auto_confirm_email: true`.
+- [passed] Criar e implantar `supabase/functions/manage-team-user/index.ts` (create/update/delete com verificação de Admin e farm).
+- [passed] Criar `src/hooks/useAuth.tsx` (AuthProvider + useAuth) seguindo o padrão de sessão do Enter Cloud.
+- [passed] Reescrever `src/pages/Login.tsx` com login + cadastro via Enter Cloud.
+- [passed] Criar `src/components/ProtectedRoute.tsx` e atualizar `src/router.tsx` (remover `/firebase-setup`).
+- [passed] Remover `FirebaseSetup.tsx`, `services/firebase.ts`, `services/userService.ts`, `services/session.ts` e a dependência `firebase`.
+- [passed] Criar `src/services/dataService.ts` com CRUD de `animais`/`financeiro`/`confinamento`.
+- [passed] Atualizar `src/pages/BoviGest.tsx`: `useAuth`, fetch inicial, assinatura Realtime, handlers assíncronos, chamada a `manage-team-user`.
+- [passed] Atualizar `src/types.ts` (`id: string` nas 4 entidades persistidas) e os 4 views afetados (`crypto.randomUUID()`).
+- [passed] Atualizar textos de status de nuvem em `Dashboard.tsx`.
 
 ## Verification checklist
-- [ ] Cadastro de nova fazenda cria sessão, perfil Admin e leva ao Dashboard.
-- [ ] Logout + login com as mesmas credenciais recupera a sessão corretamente.
-- [ ] Login com senha errada mostra erro sem travar a tela.
-- [ ] Admin cria um Operador com senha definida na tela Usuários; logout e login com essa conta funciona e mostra os mesmos Animais/Financeiro/Confinamento da fazenda.
-- [ ] Admin remove um usuário; essa conta não consegue mais fazer login.
-- [ ] Criar/editar/excluir um Animal, um lançamento Financeiro e um registro de Confinamento persiste após dar F5 (recarregar a página).
-- [ ] Abrir a fazenda em duas abas logadas (mesmo usuário ou dois usuários da fazenda) e confirmar que uma alteração em Animais aparece na outra aba sem refresh (Realtime).
-- [ ] `supabase_get_table_schema` confirma RLS habilitada e policies corretas em `profiles`, `animais`, `financeiro`, `confinamento`.
-- [ ] Build/lint do projeto sem erros após as mudanças.
+- [manual-required] Cadastro de nova fazenda cria sessão, perfil Admin e leva ao Dashboard.
+- [manual-required] Logout + login com as mesmas credenciais recupera a sessão corretamente.
+- [manual-required] Login com senha errada mostra erro sem travar a tela.
+- [manual-required] Admin cria um Operador com senha definida na tela Usuários; logout e login com essa conta funciona e mostra os mesmos Animais/Financeiro/Confinamento da fazenda.
+- [manual-required] Admin remove um usuário; essa conta não consegue mais fazer login.
+- [manual-required] Criar/editar/excluir um Animal, um lançamento Financeiro e um registro de Confinamento persiste após dar F5 (recarregar a página).
+- [manual-required] Abrir a fazenda em duas abas logadas (mesmo usuário ou dois usuários da fazenda) e confirmar que uma alteração em Animais aparece na outra aba sem refresh (Realtime).
+- [passed] `supabase_get_table_schema` confirma RLS habilitada e policies corretas em `profiles`, `animais`, `financeiro`, `confinamento`.
+- [passed] Build/lint do projeto sem erros após as mudanças.

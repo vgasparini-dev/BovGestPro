@@ -6,7 +6,7 @@ import {
 import type { Confinamento } from '../types';
 import { diasConfinado, gmdConfinamento } from '../lib/zootecnia';
 
-type Props = { confinamento: Confinamento[]; onSave: (c: Confinamento, isNew: boolean) => void; onDelete: (id: number) => void; };
+type Props = { confinamento: Confinamento[]; onSave: (c: Confinamento, isNew: boolean) => void; onDelete: (id: string) => void; };
 
 const DIETAS = ['Alto Grão', 'Silagem + Concentrado', 'Volumoso + Concentrado', 'Pasto + Suplementação', 'Outro'];
 
@@ -127,7 +127,7 @@ export default function ConfinamentoView({ confinamento, onSave, onDelete }: Pro
   const handleSave = (form: Partial<Confinamento>) => {
     const isNew = modalMode === 'create';
     const c: Confinamento = {
-      id: editing?.id ?? Date.now(),
+      id: editing?.id ?? crypto.randomUUID(),
       brinco: form.brinco!,
       curral: form.curral!,
       dataEntrada: form.dataEntrada || '',

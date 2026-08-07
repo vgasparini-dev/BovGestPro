@@ -36,28 +36,9 @@ function futureDate(n: number) {
   d.setDate(d.getDate() + n);
   return toISO(d);
 }
-function ptBrDate(iso: string) {
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y}`;
-}
-
 export const demoData: AppData = {
-  usuarios: [
-    { id: 1, nome: 'Carlos Administrador', email: 'admin@fazenda.com', senha: 'admin123', role: 'Admin', status: 'Ativo', criadoEm: '01/01/2024', ultimoAcesso: ptBrDate(daysAgo(0)) },
-    { id: 2, nome: 'Maria Pereira', email: 'maria@fazenda.com', senha: 'senha123', role: 'Operador', status: 'Ativo', criadoEm: '15/02/2024', ultimoAcesso: ptBrDate(daysAgo(1)) },
-    { id: 3, nome: 'Dr. João Vet', email: 'joao.vet@fazenda.com', senha: 'vet123', role: 'Veterinario', status: 'Ativo', criadoEm: '10/03/2024', ultimoAcesso: ptBrDate(daysAgo(5)) },
-    { id: 4, nome: 'Ana Souza', email: 'ana@fazenda.com', senha: 'ana123', role: 'Operador', status: 'Inativo', criadoEm: '20/04/2024', ultimoAcesso: ptBrDate(daysAgo(45)) },
-  ],
-  animais: [
-    { id: 1, brinco: 'A001', nome: 'Mimosa', raca: 'Nelore', sexo: 'F', dataNasc: '2021-03-15', peso: 420, lote: 'Lote A', status: 'Ativo' },
-    { id: 2, brinco: 'A002', raca: 'Angus', sexo: 'M', dataNasc: '2020-08-22', peso: 580, lote: 'Lote B', status: 'Ativo' },
-    { id: 3, brinco: 'A003', nome: 'Estrela', raca: 'Girolando', sexo: 'F', dataNasc: '2019-11-05', peso: 390, lote: 'Lote A', status: 'Ativo' },
-    { id: 4, brinco: 'A004', raca: 'Brahman', sexo: 'M', dataNasc: '2022-01-18', peso: 320, lote: 'Lote C', status: 'Ativo' },
-    { id: 5, brinco: 'A005', nome: 'Bonita', raca: 'Nelore', sexo: 'F', dataNasc: '2020-06-30', peso: 450, lote: 'Lote A', status: 'Ativo' },
-    { id: 6, brinco: 'A006', raca: 'Angus', sexo: 'M', dataNasc: '2021-09-12', peso: 510, lote: 'Lote B', status: 'Ativo' },
-    { id: 7, brinco: 'A007', raca: 'Girolando', sexo: 'F', dataNasc: '2022-04-25', peso: 310, lote: 'Lote C', status: 'Ativo' },
-    { id: 8, brinco: 'A008', raca: 'Brahman', sexo: 'M', dataNasc: '2019-12-08', peso: 620, lote: 'Lote B', status: 'Ativo' },
-  ],
+  usuarios: [],
+  animais: [],
   pesagens: [
     { id: 1, brinco: 'A001', pesoAtual: 420, pesoAnterior: 395, data: daysAgo(18), dataAnterior: daysAgo(48) },
     { id: 2, brinco: 'A002', pesoAtual: 580, pesoAnterior: 560, data: daysAgo(17), dataAnterior: daysAgo(47) },
@@ -83,16 +64,7 @@ export const demoData: AppData = {
     { id: 6, data: lastMonth(28), quantidade: 110, turno: 'Manhã' },
     { id: 7, data: lastMonth(28), quantidade: 82, turno: 'Tarde' },
   ],
-  financeiro: [
-    { id: 1, tipo: 'receita', categoria: 'Venda de Animais', descricao: 'Venda de 3 bois', valor: 12500, data: thisMonth(1), status: 'pago' },
-    { id: 2, tipo: 'receita', categoria: 'Venda de Leite', descricao: 'Venda mensal cooperativa', valor: 4800, data: thisMonth(2), status: 'pago' },
-    { id: 3, tipo: 'despesa', categoria: 'Alimentação', descricao: 'Ração concentrada 5t', valor: 3200, data: thisMonth(1), status: 'pago' },
-    { id: 4, tipo: 'despesa', categoria: 'Veterinário', descricao: 'Vacinação Brucelose', valor: 850, data: daysAgo(3), status: 'pago' },
-    { id: 5, tipo: 'despesa', categoria: 'Manutenção', descricao: 'Reparo cerca setor B', valor: 1200, data: lastMonth(28), status: 'pago' },
-    { id: 6, tipo: 'receita', categoria: 'Venda de Leite', descricao: 'Venda quinzena', valor: 2400, data: lastMonth(15), status: 'pago' },
-    { id: 7, tipo: 'despesa', categoria: 'Combustível', descricao: 'Diesel trator', valor: 680, data: lastMonth(20), status: 'pago' },
-    { id: 8, tipo: 'despesa', categoria: 'Medicamentos', descricao: 'Antibióticos', valor: 420, data: daysAgo(1), status: 'pendente' },
-  ],
+  financeiro: [],
   insumos: [
     { id: 1, nome: 'Ração Concentrada Bovinos', categoria: 'Alimentação', quantidade: 500, unidade: 'kg', estoqueMinimo: 1000, fornecedor: 'Nutral Rações', custo: 2.8 },
     { id: 2, nome: 'Ivermectina 1%', categoria: 'Medicamentos', quantidade: 50, unidade: 'ml', estoqueMinimo: 100, validade: futureDate(240), custo: 45 },
@@ -128,10 +100,5 @@ export const demoData: AppData = {
     { id: 3, brinco: 'A005', status: 'Vazia', observacao: 'Aguardando avaliação veterinária' },
     { id: 4, brinco: 'A007', status: 'Gestação', dataCobertura: monthsAgoDate(2), dataPrevistoParto: futureDate(210) },
   ],
-  confinamento: [
-    { id: 1, brinco: 'A004', curral: 'Curral 1', dataEntrada: daysAgo(40), pesoEntrada: 280, pesoAtual: 320, dataUltimaPesagem: daysAgo(3), dieta: 'Alto Grão', custoDiario: 12.5, previsaoSaida: futureDate(50), status: 'Em confinamento' },
-    { id: 2, brinco: 'A006', curral: 'Curral 1', dataEntrada: daysAgo(35), pesoEntrada: 410, pesoAtual: 455, dataUltimaPesagem: daysAgo(3), dieta: 'Alto Grão', custoDiario: 12.5, previsaoSaida: futureDate(45), status: 'Em confinamento' },
-    { id: 3, brinco: 'A008', curral: 'Curral 2', dataEntrada: daysAgo(60), pesoEntrada: 500, pesoAtual: 590, dataUltimaPesagem: daysAgo(5), dieta: 'Silagem + Concentrado', custoDiario: 10.8, previsaoSaida: futureDate(15), status: 'Em confinamento' },
-    { id: 4, brinco: 'A002', curral: 'Curral 2', dataEntrada: daysAgo(90), pesoEntrada: 460, pesoAtual: 580, dataUltimaPesagem: daysAgo(10), dieta: 'Silagem + Concentrado', custoDiario: 10.8, status: 'Vendido', observacao: 'Vendido acima da meta de peso' },
-  ],
+  confinamento: [],
 };
